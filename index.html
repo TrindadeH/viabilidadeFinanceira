@@ -24,7 +24,6 @@
         .btn-success { background: var(--success); color: white; margin: 20px 0 10px 0; font-size: 15px; }
         .btn-secondary { background: #6c757d; color: white; margin-top: 10px; }
         
-        /* Estilos dos itens com ícones no resumo */
         #lista-resumo { list-style: none; padding: 0; margin-top: 15px; }
         .item-resumo { font-size: 13px; padding: 12px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .item-info b { color: #333; display: block; }
@@ -129,7 +128,7 @@
 
 <script>
     let planosAdicionados = [];
-    let idEdicao = null; // Para saber se estamos editando um item específico
+    let idEdicao = null;
 
     function show(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -183,14 +182,12 @@
         };
 
         if (idEdicao !== null) {
-            // Se estamos editando, substitui o item na lista
             const index = planosAdicionados.findIndex(p => p.id === idEdicao);
             planosAdicionados[index] = dadosItem;
             idEdicao = null;
             document.getElementById('btn-add-update').innerText = "+ ADICIONAR PLANO AO ORÇAMENTO";
             document.getElementById('btn-add-update').style.backgroundColor = "var(--success)";
         } else {
-            // Se for novo, adiciona no array
             planosAdicionados.push(dadosItem);
         }
 
@@ -218,7 +215,6 @@
         const item = planosAdicionados.find(p => p.id === id);
         if (!item) return;
 
-        // Preenche os campos de volta para edição
         const select = document.getElementById('plano');
         for (let i = 0; i < select.options.length; i++) {
             if (select.options[i].text.includes(item.nomePuro)) {
@@ -238,15 +234,12 @@
         idEdicao = id;
         document.getElementById('btn-add-update').innerText = "ATUALIZAR ITEM SELECIONADO";
         document.getElementById('btn-add-update').style.backgroundColor = "var(--warning)";
-        
-        // Move o foco para o início do formulário
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function atualizarResumo() {
         const lista = document.getElementById('lista-resumo');
         lista.innerHTML = "";
-        
         let totalGeral = 0;
 
         if (planosAdicionados.length === 0) {
@@ -265,19 +258,25 @@
                     </div>
                     <div class="item-acoes">
                         <div style="font-weight: bold; margin-right: 5px;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                        <button class="btn-acao btn-edit" onclick="editarItem(${p.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-acao btn-delete" onclick="removerItem(${p.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn-acao btn-edit" onclick="editarItem(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-acao btn-delete" onclick="removerItem(${p.id})"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </li>`;
         });
-
         document.getElementById('valorTotalFinal').innerText = "R$ " + totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     }
 
     function gerar() {
         if (planosAdicionados.length === 0) return alert("Adicione pelo menos um plano.");
-        const projeto = document.getElementById('projeto').value || "CRC_Documento";
         
+        const projeto = document.getElementById('projeto').value || "CRC_Doc";
+        const cnpj = document.getElementById('cnpj').value || "Não informado";
+        const consultor = document.getElementById('consultor').value || "Não informado";
+        const hoje = new Date().toLocaleDateString('pt-BR');
+        
+        // No Word, pegaremos a data de entrega do primeiro item ou deixaremos dinâmico
+        const dataEntregaDoc = planosAdicionados[0].dataEntrega ? new Date(planosAdicionados[0].dataEntrega).toLocaleDateString('pt-BR') : "Não informada";
+
         let itensWord = planosAdicionados.map(p => `
             <tr>
                 <td style="border: 1px solid #ccc; padding: 5px; font-family: Arial;">${p.nome}</td>
@@ -287,20 +286,51 @@
 
         const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
             <h2 style="border-bottom: 2px solid #000; font-family: Arial;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
-            <p><b>Projeto:</b> ${projeto} | <b>Consultor:</b> ${document.getElementById('consultor').value}</p>
-            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
-                <tr style="background: #eee;"><td><b>Item / Plano</b></td><td style="text-align:center;"><b>Qtd</b></td><td style="text-align:right;"><b>Total</b></td></tr>
+            
+            <p style="font-family: Arial;"><b>Data de geração:</b> ${hoje}</p>
+            
+            <h3 style="color: #000; font-family: Arial; margin-top: 15px;">1. Dados do Cliente</h3>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse; font-family: Arial;">
+                <tr style="background-color: #f2f2f2;">
+                    <td style="width: 30%;"><b>CNPJ</b></td>
+                    <td>${cnpj}</td>
+                </tr>
+                <tr>
+                    <td><b>Cliente/Projeto</b></td>
+                    <td>${projeto}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td><b>Consultor</b></td>
+                    <td>${consultor}</td>
+                </tr>
+                <tr>
+                    <td><b>Data de Entrega (Item 1)</b></td>
+                    <td>${dataEntregaDoc}</td>
+                </tr>
+            </table>
+
+            <h3 style="color: #000; font-family: Arial; margin-top: 20px;">2. Detalhamento dos Planos</h3>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse; font-family: Arial;">
+                <tr style="background: #eee;">
+                    <td><b>Item / Plano</b></td>
+                    <td style="text-align:center;"><b>Qtd</b></td>
+                    <td style="text-align:right;"><b>Total</b></td>
+                </tr>
                 ${itensWord}
             </table>
-            <h2 style="text-align: right; font-family: Arial; margin-top: 20px;">VALOR TOTAL: ${document.getElementById('valorTotalFinal').innerText}</h2>
+            
+            <h2 style="text-align: right; font-family: Arial; margin-top: 20px; border-top: 2px solid #000; padding-top: 10px;">
+                VALOR TOTAL: ${document.getElementById('valorTotalFinal').innerText}
+            </h2>
         </body></html>`;
 
         const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `${projeto}.doc`;
+        link.download = `${projeto.replace(/\s/g, '_')}.doc`;
         link.click();
     }
 </script>
