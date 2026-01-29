@@ -41,16 +41,22 @@
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-        /* BOTÕES */
+        /* BOTÕES GERAIS */
         .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
-        .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
-        .btn-add-inline:hover { background-color: #218838; }
         
-        /* Botão Adicionar/Salvar Item */
-        .btn-add-block { background-color: var(--success); color: white; margin-top: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
-        .btn-add-block:hover { background-color: #218838; }
-        .btn-add-block.editing { background-color: var(--warning); color: #333; }
+        /* BOTÃO ADICIONAR (Compacto/Enxuto) */
+        .btn-add-compact { 
+            background-color: var(--success); color: white; border: none; 
+            padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; 
+            display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; width: auto; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-add-compact:hover { background-color: #218838; transform: translateY(-2px); }
+        .btn-add-compact.editing { background-color: var(--warning); color: #333; }
 
+        .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        
+        /* BOTÕES DE AÇÃO DO ARQUIVO/DOC */
         .btn-generate { background: #333; color: white; margin-top: 10px; padding: 15px; font-size: 14px; }
         .btn-generate:hover { background: #000; }
         
@@ -170,9 +176,11 @@
             </div>
         </div>
 
-        <button id="btn-add-comercial" class="btn btn-add-block" onclick="adicionarPlanoComercial()">
-            <i class="fa-solid fa-plus"></i> ADICIONAR PLANO
-        </button>
+        <div style="text-align: right;">
+            <button id="btn-add-comercial" class="btn-add-compact" onclick="adicionarPlanoComercial()">
+                <i class="fa-solid fa-plus"></i> Adicionar Plano
+            </button>
+        </div>
 
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
@@ -235,9 +243,11 @@
                 </select>
             </div>
 
-            <button id="btn-add-tecnico" class="btn btn-add-block" onclick="adicionarItemTecnico()">
-                <i class="fa-solid fa-plus"></i> ADICIONAR ITEM TÉCNICO
-            </button>
+            <div style="text-align: right;">
+                <button id="btn-add-tecnico" class="btn-add-compact" onclick="adicionarItemTecnico()">
+                    <i class="fa-solid fa-plus"></i> Adicionar Item
+                </button>
+            </div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
             <button class="btn btn-save-tec" onclick="gerarDocumentoCompleto()">
@@ -332,7 +342,7 @@
         const itemObj = {
             id: Date.now(),
             nome: nomeFinal,
-            nomeOriginal: nomePlano, // Para re-selecionar ao editar
+            nomeOriginal: nomePlano, 
             qtd: qtd,
             valorUnit: valorUnit,
             servico: servico,
@@ -344,20 +354,15 @@
         };
 
         if (editIndexCom !== null) {
-            // Atualizar existente
             dadosProjeto.comercial.itens[editIndexCom] = itemObj;
             editIndexCom = null;
-            
-            // Reseta botão
             const btn = document.getElementById('btn-add-comercial');
-            btn.innerHTML = '<i class="fa-solid fa-plus"></i> ADICIONAR PLANO';
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Plano';
             btn.classList.remove('editing');
         } else {
-            // Novo
             dadosProjeto.comercial.itens.push(itemObj);
         }
 
-        // Limpa campos
         select.value = "0";
         document.getElementById('qtdPlano').value = "1";
         document.getElementById('parceiraCheck').value = "nao";
@@ -432,7 +437,7 @@
             dadosProjeto.tecnico.itens[editIndexTec] = itemObj;
             editIndexTec = null;
             const btn = document.getElementById('btn-add-tecnico');
-            btn.innerHTML = '<i class="fa-solid fa-plus"></i> ADICIONAR ITEM TÉCNICO';
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Item';
             btn.classList.remove('editing');
         } else {
             dadosProjeto.tecnico.itens.push(itemObj);
@@ -444,14 +449,11 @@
         renderizarResumo();
     }
 
-    // --- FUNÇÕES DE EDIÇÃO (CARREGAR DADOS) ---
+    // --- FUNÇÕES DE EDIÇÃO ---
     function editarItem(tipo, index) {
         if (tipo === 'com') {
             const item = dadosProjeto.comercial.itens[index];
-            
-            // Popula campos
             const select = document.getElementById('plano');
-            // Tenta encontrar o plano original no select
             for (let i = 0; i < select.options.length; i++) {
                 if (select.options[i].text.includes(item.nomeOriginal)) {
                     select.selectedIndex = i;
@@ -467,13 +469,11 @@
             document.getElementById('valorParceira').value = item.valParc;
             toggleParceira();
 
-            // Configura estado de edição
             editIndexCom = index;
             const btn = document.getElementById('btn-add-comercial');
-            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> SALVAR ALTERAÇÃO';
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Salvar Alteração';
             btn.classList.add('editing');
             
-            // Scroll suave
             document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
 
         } else if (tipo === 'tec') {
@@ -485,7 +485,7 @@
 
             editIndexTec = index;
             const btn = document.getElementById('btn-add-tecnico');
-            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> SALVAR ALTERAÇÃO';
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Salvar Alteração';
             btn.classList.add('editing');
             
             document.getElementById('area-tecnica-form').scrollIntoView({ behavior: 'smooth' });
@@ -504,7 +504,6 @@
     function renderizarResumo() {
         const listaCom = document.getElementById('lista-resumo-com');
         const listaTec = document.getElementById('lista-resumo-tec');
-        
         let totalGeral = 0;
 
         // Comercial
@@ -548,7 +547,7 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    // --- GERAÇÃO WORD E UTILITÁRIOS ---
+    // --- GERAÇÃO WORD ---
     function gerarDocumentoCompleto() { gerarDocumentoWord(true); }
 
     function gerarDocumentoWord(completo) {
