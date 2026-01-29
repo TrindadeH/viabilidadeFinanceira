@@ -5,75 +5,94 @@
     <title>Sistema CRC - Enterprise</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #2980b9; --bg: #ecf0f1; --success: #27ae60; --danger: #c0392b; --warning: #f39c12; }
+        :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; }
         
         body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         
-        .container { display: flex; gap: 20px; width: 100%; max-width: 1200px; padding: 40px 20px; align-items: flex-start; justify-content: center; }
+        .container { display: flex; gap: 25px; width: 100%; max-width: 1200px; padding: 40px 20px; align-items: flex-start; justify-content: center; }
         
-        /* CARDS PRINCIPAIS */
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); width: 100%; animation: fadeIn 0.3s ease; }
-        .resumo-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); width: 380px; position: sticky; top: 20px; min-height: 200px; display: none; }
+        /* --- CARDS --- */
+        .card { background: white; padding: 35px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; animation: fadeIn 0.3s ease; }
         
-        /* DASHBOARD (TELA INICIAL) */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 40px; }
-        
-        .menu-card-btn {
-            background: white; border: 1px solid #dfe6e9; border-radius: 12px; padding: 40px 30px;
-            text-align: center; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* Resumo Lateral (Igual ao print) */
+        .resumo-card { 
+            background: #fff; padding: 25px; border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 350px; 
+            position: sticky; top: 20px; min-height: 200px; display: none; 
+        }
+
+        /* --- TELA INICIAL --- */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 50px; }
+        .menu-btn {
+            background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 50px 30px;
+            text-align: center; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
-        .menu-card-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: var(--accent); }
-        .menu-card-btn i { font-size: 48px; color: var(--secondary); margin-bottom: 20px; transition: 0.3s; }
-        .menu-card-btn:hover i { color: var(--accent); }
-        .menu-card-btn h3 { margin: 0; color: var(--primary); font-size: 1.4rem; font-weight: 700; }
-        .menu-card-btn p { color: #7f8c8d; margin-top: 10px; font-size: 0.95rem; line-height: 1.5; }
+        .menu-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: var(--accent); }
+        .menu-btn i { font-size: 50px; color: var(--accent); margin-bottom: 20px; }
+        .menu-btn h3 { margin: 0; color: #333; font-size: 1.5rem; }
+        .menu-btn p { color: #777; margin-top: 10px; }
 
-        /* TIPOGRAFIA E FORMULÁRIO */
-        h1.app-title { text-align: center; color: var(--primary); font-size: 2.2rem; margin-bottom: 5px; }
-        p.app-subtitle { text-align: center; color: #7f8c8d; margin-top: 0; font-size: 1.1rem; }
+        /* --- FORMULÁRIO COMERCIAL (Estilo do print) --- */
+        h1.app-title { text-align: center; color: var(--accent); margin-bottom: 10px; }
         
-        h2 { border-bottom: 2px solid #eee; padding-bottom: 15px; color: var(--primary); margin-top: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
-        h3.section-title { font-size: 13px; color: #7f8c8d; text-transform: uppercase; margin-top: 30px; border-left: 4px solid var(--accent); padding-left: 15px; margin-bottom: 20px; letter-spacing: 1px; font-weight: 700; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 15px; color: #333; margin-top: 0; font-size: 1.5rem; font-weight: 700; }
         
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 13px; color: #576574; text-transform: uppercase; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 6px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background: #fdfdfd; }
-        input:focus, select:focus { border-color: var(--accent); outline: none; background: white; }
+        /* Cabeçalho da Seção com Botão ao Lado */
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 30px; margin-bottom: 20px;
+            border-bottom: 1px solid #eee; padding-bottom: 10px;
+        }
+        .section-title { 
+            font-size: 14px; color: #666; text-transform: uppercase; 
+            border-left: 4px solid #333; padding-left: 10px; margin: 0; font-weight: bold; 
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 12px; color: #555; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; background: #fff; }
+        input:focus, select:focus { border-color: var(--accent); outline: none; }
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-        /* BOTÕES */
-        .btn { padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 14px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-primary { background: var(--secondary); color: white; }
-        .btn-primary:hover { background: var(--primary); }
-        .btn-success { background: var(--success); color: white; margin: 10px 0; }
-        .btn-success:hover { background: #219150; }
-        .btn-secondary { background: #95a5a6; color: white; margin-top: 10px; }
-        .btn-secondary:hover { background: #7f8c8d; }
-        .btn-icon { background: transparent; border: 1px solid #ddd; color: #7f8c8d; width: auto; padding: 8px; border-radius: 4px; }
-        .btn-icon:hover { background: #f5f5f5; color: var(--primary); }
+        /* Botões */
+        .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
+        
+        /* Botão Adicionar (Verde, pequeno, no header) */
+        .btn-add-inline {
+            background-color: var(--success); color: white; border: none; 
+            padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;
+            display: flex; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .btn-add-inline:hover { background-color: #218838; }
 
-        /* RESUMO E ÍCONES */
-        #lista-resumo { list-style: none; padding: 0; margin-top: 20px; }
-        .item-resumo { font-size: 14px; padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .item-info b { color: var(--primary); display: block; margin-bottom: 4px; }
-        .item-info span { color: #95a5a6; font-size: 12px; display: block; }
+        .btn-generate { background: #333; color: white; margin-top: 20px; padding: 15px; font-size: 14px; }
+        .btn-generate:hover { background: #000; }
         
-        .item-acoes { display: flex; gap: 8px; align-items: center; }
-        .btn-acao { background: white; border: 1px solid #eee; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: 0.2s; font-size: 14px; color: #95a5a6; }
-        .btn-acao.edit:hover { background: #fef9e7; color: var(--warning); border-color: var(--warning); }
-        .btn-acao.delete:hover { background: #fdedec; color: var(--danger); border-color: var(--danger); }
-        
-        .valor-total-container { margin-top: 30px; padding-top: 20px; border-top: 2px dashed #bdc3c7; text-align: right; }
-        .valor-total-numero { font-size: 28px; font-weight: 800; color: var(--success); letter-spacing: -1px; }
+        .btn-back { background: #6c757d; color: white; margin-top: 10px; }
+        .btn-back:hover { background: #5a6268; }
 
-        #secao-parceira { background: #f8f9fa; border: 1px dashed #bdc3c7; padding: 20px; border-radius: 8px; margin-top: 15px; display: none; }
+        /* Resumo Lateral */
+        #lista-resumo { list-style: none; padding: 0; margin-top: 20px; border-top: 1px solid #eee; }
+        .item-resumo { padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .item-info b { color: #333; font-size: 14px; display: block; }
+        .item-info span { color: #777; font-size: 11px; }
         
-        /* CONTROLE DE TELAS */
+        .valor-total-container { margin-top: 20px; }
+        .lbl-total { font-size: 11px; font-weight: bold; color: #777; text-transform: uppercase; display: block; }
+        .val-total { font-size: 28px; font-weight: bold; color: var(--success); }
+
+        /* Ícones de Ação */
+        .acoes-item { display: flex; gap: 5px; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: #999; font-size: 14px; padding: 5px; }
+        .btn-icon:hover { color: var(--primary); }
+        .btn-icon.del:hover { color: var(--danger); }
+
+        #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
+        
         .screen { display: none; }
         .screen.active { display: block; }
-        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -81,44 +100,45 @@
 
 <div class="container" id="main-container">
     
-    <div id="tela-inicial" class="screen active" style="width: 100%; max-width: 900px;">
+    <div id="tela-inicial" class="screen active" style="width: 100%; max-width: 800px;">
         <h1 class="app-title">Sistema CRC</h1>
-        <p class="app-subtitle">Selecione o módulo para iniciar</p>
+        <p style="text-align: center; color: #777;">Selecione o módulo para iniciar</p>
         
         <div class="dashboard-grid">
-            <div class="menu-card-btn" onclick="irPara('tela-comercial')">
+            <div class="menu-btn" onclick="irPara('tela-comercial')">
                 <i class="fa-solid fa-briefcase"></i>
                 <h3>Comercial</h3>
-                <p>Criar orçamentos, adicionar planos e gerar propostas.</p>
+                <p>Criar orçamentos e propostas</p>
             </div>
-
-            <div class="menu-card-btn" onclick="irPara('tela-tecnica')">
+            <div class="menu-btn" onclick="irPara('tela-tecnica')">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <h3>Equipe Técnica</h3>
-                <p>Gestão de infraestrutura e viabilidade técnica.</p>
+                <p>Gestão de infraestrutura</p>
             </div>
         </div>
     </div>
 
     <div id="tela-comercial" class="card screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2><i class="fa-solid fa-file-invoice-dollar"></i> Orçamento Comercial</h2>
-            <button class="btn-icon" onclick="irPara('tela-inicial')" title="Fechar"><i class="fa-solid fa-times"></i></button>
-        </div>
+        <h2>Dados Comercial</h2>
 
         <div class="form-group">
-            <label>Cliente / Projeto</label>
-            <input type="text" id="projeto" placeholder="Ex: Ailos - Expansão Norte">
+            <label>Cliente/Projeto</label>
+            <input type="text" id="projeto" placeholder="Ex: Ailos">
         </div>
         <div class="row">
             <div class="form-group">
                 <label>CNPJ</label>
                 <input type="text" id="cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="mascaraCNPJ(this)">
             </div>
-            <div class="form-group"><label>Consultor Responsável</label><input type="text" id="consultor"></div>
+            <div class="form-group"><label>Consultor</label><input type="text" id="consultor"></div>
         </div>
 
-        <h3 class="section-title">Adicionar Item</h3>
+        <div class="section-header">
+            <h3 class="section-title">| CONFIGURAÇÃO DE PLANOS</h3>
+            <button class="btn-add-inline" id="btn-add-update" onclick="adicionarOuAtualizarPlano()">
+                <i class="fa-solid fa-plus"></i> Adicionar Plano
+            </button>
+        </div>
         
         <div class="form-group">
             <label>Plano</label>
@@ -131,7 +151,7 @@
         </div>
         
         <div class="row">
-            <div class="form-group"><label>Quantidade</label><input type="number" id="qtdPlano" value="1" min="1"></div>
+            <div class="form-group"><label>Quantidade de Planos</label><input type="number" id="qtdPlano" value="1" min="1"></div>
             <div class="form-group">
                 <label>Tipo de Serviço</label>
                 <select id="servico">
@@ -148,7 +168,7 @@
         </div>
 
         <div class="form-group">
-            <label>Possui Parceira?</label>
+            <label>Parceira?</label>
             <select id="parceiraCheck" onchange="toggleParceira()">
                 <option value="nao">Não</option>
                 <option value="sim">Sim</option>
@@ -162,61 +182,40 @@
             </div>
         </div>
 
-        <button class="btn btn-success" id="btn-add-update" onclick="adicionarOuAtualizarPlano()">
-            <i class="fa-solid fa-plus-circle"></i> ADICIONAR AO ORÇAMENTO
-        </button>
-
-        <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
-            <button class="btn btn-primary" onclick="gerarWord()">
-                <i class="fa-solid fa-file-word"></i> GERAR DOCUMENTO WORD
-            </button>
-            <button class="btn btn-secondary" onclick="irPara('tela-inicial')">
-                <i class="fa-solid fa-arrow-left"></i> VOLTAR
-            </button>
-        </div>
+        <button class="btn btn-generate" onclick="gerarWord()">GERAR DOCUMENTO WORD</button>
+        <button class="btn btn-back" onclick="irPara('tela-inicial')">VOLTAR AO MENU</button>
     </div>
 
-    <div id="tela-tecnica" class="card screen" style="text-align: center; max-width: 600px;">
-        <i class="fa-solid fa-tools" style="font-size: 60px; color: #bdc3c7; margin-bottom: 20px;"></i>
-        <h2>Módulo Técnico</h2>
-        <p style="color: #7f8c8d;">Esta funcionalidade estará disponível em breve.</p>
-        <button class="btn btn-secondary" style="width: auto; margin: 20px auto; padding: 10px 30px;" onclick="irPara('tela-inicial')">Voltar ao Início</button>
+    <div id="tela-tecnica" class="card screen" style="text-align: center;">
+        <i class="fa-solid fa-tools" style="font-size: 50px; color: #ccc; margin-bottom: 20px;"></i>
+        <h2>Em Breve</h2>
+        <p>Módulo técnico em desenvolvimento.</p>
+        <button class="btn btn-back" style="width: auto; margin: 0 auto; padding: 10px 30px;" onclick="irPara('tela-inicial')">Voltar</button>
     </div>
 
     <div id="resumo-container" class="resumo-card">
-        <h2 style="font-size: 18px; margin-bottom: 5px; border: none;">Resumo</h2>
-        <p style="color: #bdc3c7; font-size: 12px; margin-top: 0;">Itens no documento</p>
+        <h2 style="font-size: 16px; border: none; margin-bottom: 0;">Resumo do Orçamento</h2>
+        <div style="border-bottom: 1px solid #eee; margin-bottom: 10px;"></div>
         
         <ul id="lista-resumo">
-            <li style="color: #bdc3c7; font-size: 13px; text-align: center; margin-top: 40px;">
-                <i class="fa-regular fa-folder-open" style="font-size: 30px; margin-bottom: 10px; display: block;"></i>
-                Nenhum item.
-            </li>
+            <li style="color: #999; font-size: 12px; text-align: center; padding: 20px;">Nenhum plano adicionado.</li>
         </ul>
         
         <div class="valor-total-container">
-            <span style="font-size: 11px; font-weight: bold; color: #7f8c8d;">TOTAL GERAL</span>
-            <div id="valorTotalFinal" class="valor-total-numero">R$ 0,00</div>
+            <span class="lbl-total">VALOR TOTAL ESTIMADO</span>
+            <div id="valorTotalFinal" class="val-total">R$ 0,00</div>
         </div>
     </div>
-
 </div>
 
 <script>
-    // --- ESTADO DA APLICAÇÃO ---
     let planosAdicionados = [];
     let idEdicao = null;
 
-    // --- NAVEGAÇÃO ---
     function irPara(telaId) {
-        // Esconde todas as telas
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-        
-        // Mostra a tela alvo
-        const target = document.getElementById(telaId);
-        if(target) target.classList.add('active');
+        document.getElementById(telaId).classList.add('active');
 
-        // Controla o Resumo Lateral e a largura do container
         const resumo = document.getElementById('resumo-container');
         const container = document.getElementById('main-container');
 
@@ -225,14 +224,10 @@
             container.style.maxWidth = '1200px'; 
         } else {
             resumo.style.display = 'none';
-            container.style.maxWidth = '900px'; // Centraliza melhor o menu inicial
+            container.style.maxWidth = '800px'; 
         }
-        
-        // Rola para o topo
-        window.scrollTo(0,0);
     }
 
-    // --- MÁSCARA CNPJ ---
     function mascaraCNPJ(i) {
         let v = i.value.replace(/\D/g, "");
         if (v.length > 14) v = v.substring(0, 14);
@@ -243,24 +238,17 @@
         i.value = v;
     }
 
-    // --- INTERFACE PARCEIRA ---
     function toggleParceira() {
-        const check = document.getElementById('parceiraCheck');
-        const secao = document.getElementById('secao-parceira');
-        secao.style.display = (check.value === 'sim') ? 'block' : 'none';
+        const display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
+        document.getElementById('secao-parceira').style.display = display;
     }
 
-    // --- ADICIONAR / ATUALIZAR ITEM ---
     function adicionarOuAtualizarPlano() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
         
-        if (valorUnit === 0) {
-            alert("Por favor, selecione um plano válido.");
-            return;
-        }
+        if (valorUnit === 0) return alert("Selecione um plano válido.");
 
-        // Coleta de dados
         let nomePlano = select.options[select.selectedIndex].text.split(' - ')[0];
         const qtd = parseInt(document.getElementById('qtdPlano').value) || 1;
         const servico = document.getElementById('servico').value;
@@ -270,11 +258,10 @@
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
 
-        // Lógica de nome e cálculo
         const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
         const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
 
-        const itemObj = {
+        const item = {
             id: idEdicao !== null ? idEdicao : Date.now(),
             nome: nomeFinal,
             nomeOriginal: nomePlano,
@@ -289,40 +276,63 @@
         };
 
         if (idEdicao !== null) {
-            // Atualizar existente
             const idx = planosAdicionados.findIndex(p => p.id === idEdicao);
-            if(idx !== -1) planosAdicionados[idx] = itemObj;
-            
-            // Reseta botão
+            if(idx !== -1) planosAdicionados[idx] = item;
             idEdicao = null;
             const btn = document.getElementById('btn-add-update');
-            btn.innerHTML = '<i class="fa-solid fa-plus-circle"></i> ADICIONAR AO ORÇAMENTO';
-            btn.classList.remove('btn-warning');
-            btn.style.background = 'var(--success)';
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Plano';
+            btn.style.backgroundColor = "var(--success)";
         } else {
-            // Novo item
-            planosAdicionados.push(itemObj);
+            planosAdicionados.push(item);
         }
 
-        limparCamposItem();
+        limparCampos();
         renderizarResumo();
     }
 
-    function limparCamposItem() {
+    function limparCampos() {
         document.getElementById('plano').value = "0";
         document.getElementById('qtdPlano').value = "1";
         document.getElementById('servico').value = "Internet";
-        // Não limpamos dataEntrega propositalmente para facilitar inserções em massa, mas se preferir pode descomentar:
-        // document.getElementById('dataEntrega').value = "";
+        // Não limpa data propositalmente para facilitar inserção em massa
         document.getElementById('parceiraCheck').value = "nao";
         document.getElementById('qtdParceira').value = "0";
         document.getElementById('valorParceira').value = "0";
         toggleParceira();
     }
 
-    // --- AÇÕES DO RESUMO ---
+    function renderizarResumo() {
+        const lista = document.getElementById('lista-resumo');
+        const totalEl = document.getElementById('valorTotalFinal');
+        lista.innerHTML = "";
+        
+        if (planosAdicionados.length === 0) {
+            lista.innerHTML = `<li style="color: #999; font-size: 12px; text-align: center; padding: 20px;">Nenhum plano adicionado.</li>`;
+            totalEl.innerText = "R$ 0,00";
+            return;
+        }
+
+        let totalGeral = 0;
+        planosAdicionados.forEach(p => {
+            totalGeral += p.totalItem;
+            lista.innerHTML += `
+                <li class="item-resumo">
+                    <div class="item-info">
+                        <b>${p.nome}</b>
+                        <span>${p.qtd} un x R$ ${p.valorUnit.toFixed(2)}</span>
+                    </div>
+                    <div class="acoes-item">
+                        <span style="font-weight:bold; font-size:13px; margin-right:5px;">R$ ${p.totalItem.toFixed(2)}</span>
+                        <button class="btn-icon" onclick="editarItem(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon del" onclick="excluirItem(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </li>`;
+        });
+        totalEl.innerText = "R$ " + totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    }
+
     function excluirItem(id) {
-        if(confirm("Deseja remover este item?")) {
+        if(confirm("Remover este item?")) {
             planosAdicionados = planosAdicionados.filter(p => p.id !== id);
             renderizarResumo();
         }
@@ -332,7 +342,6 @@
         const item = planosAdicionados.find(p => p.id === id);
         if(!item) return;
 
-        // Popula campos
         const select = document.getElementById('plano');
         for (let i = 0; i < select.options.length; i++) {
             if (select.options[i].text.includes(item.nomeOriginal)) {
@@ -343,62 +352,17 @@
         document.getElementById('qtdPlano').value = item.qtd;
         document.getElementById('servico').value = item.servico;
         document.getElementById('dataEntrega').value = item.dataEntrega;
-        
         document.getElementById('parceiraCheck').value = item.temParceira ? "sim" : "nao";
         toggleParceira();
-        
         document.getElementById('qtdParceira').value = item.qtdParc;
         document.getElementById('valorParceira').value = item.valParc;
 
-        // Muda estado para edição
         idEdicao = id;
         const btn = document.getElementById('btn-add-update');
-        btn.innerHTML = '<i class="fa-solid fa-sync"></i> ATUALIZAR ITEM';
-        btn.style.background = 'var(--warning)';
-        
-        // Scroll suave para o form
-        document.getElementById('tela-comercial').scrollIntoView({ behavior: 'smooth' });
+        btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Atualizar';
+        btn.style.backgroundColor = "var(--warning)";
     }
 
-    function renderizarResumo() {
-        const lista = document.getElementById('lista-resumo');
-        const totalEl = document.getElementById('valorTotalFinal');
-        lista.innerHTML = "";
-        
-        if (planosAdicionados.length === 0) {
-            lista.innerHTML = `
-            <li style="color: #bdc3c7; font-size: 13px; text-align: center; margin-top: 40px;">
-                <i class="fa-regular fa-folder-open" style="font-size: 30px; margin-bottom: 10px; display: block;"></i>
-                Nenhum item.
-            </li>`;
-            totalEl.innerText = "R$ 0,00";
-            return;
-        }
-
-        let totalGeral = 0;
-        planosAdicionados.forEach(p => {
-            totalGeral += p.totalItem;
-            
-            const li = document.createElement('li');
-            li.className = 'item-resumo';
-            li.innerHTML = `
-                <div class="item-info">
-                    <b>${p.nome}</b>
-                    <span>${p.qtd}x R$ ${p.valorUnit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                </div>
-                <div class="item-acoes">
-                    <span style="font-weight:bold; font-size:13px; margin-right:5px;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                    <button class="btn-acao edit" onclick="editarItem(${p.id})"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-acao delete" onclick="excluirItem(${p.id})"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `;
-            lista.appendChild(li);
-        });
-
-        totalEl.innerText = "R$ " + totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-    }
-
-    // --- GERAÇÃO DO WORD ---
     function formatarDataBR(dataISO) {
         if (!dataISO) return "Não informada";
         const [ano, mes, dia] = dataISO.split('-');
@@ -406,78 +370,51 @@
     }
 
     function gerarWord() {
-        if (planosAdicionados.length === 0) return alert("Adicione pelo menos um item ao orçamento.");
+        if (planosAdicionados.length === 0) return alert("Adicione itens ao orçamento primeiro.");
 
-        const projeto = document.getElementById('projeto').value || "Sem Projeto";
-        const cnpj = document.getElementById('cnpj').value || "---";
-        const consultor = document.getElementById('consultor').value || "---";
-        const hoje = new Date().toLocaleDateString('pt-BR');
-        
-        // Pega data do primeiro item como referência
+        const projeto = document.getElementById('projeto').value || "Orçamento";
+        const cnpj = document.getElementById('cnpj').value || "";
+        const consultor = document.getElementById('consultor').value || "";
         const dataRef = formatarDataBR(planosAdicionados[0].dataEntrega);
-        const totalFinal = document.getElementById('valorTotalFinal').innerText;
+        const hoje = new Date().toLocaleDateString('pt-BR');
+        const total = document.getElementById('valorTotalFinal').innerText;
 
-        // Monta linhas da tabela
-        const linhasTabela = planosAdicionados.map(p => `
+        let linhas = planosAdicionados.map(p => `
             <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">${p.nome}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${p.qtd}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">R$ ${p.totalItem.toFixed(2)}</td>
+                <td style="padding:5px;">${p.nome}</td>
+                <td style="padding:5px; text-align:center;">${p.qtd}</td>
+                <td style="padding:5px; text-align:right;">R$ ${p.totalItem.toFixed(2)}</td>
             </tr>
         `).join('');
 
-        // HTML do documento
-        const conteudoWord = `
+        const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
+            <h2 style="border-bottom: 2px solid #333;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
+            <p>Data: ${hoje}</p>
             
-            <h2 style="border-bottom: 2px solid #333; padding-bottom: 10px; color: #333;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
-            <p style="font-size: 12px; color: #666;">Gerado em: ${hoje}</p>
-
-            <h3 style="background: #f2f2f2; padding: 5px; border-left: 4px solid #333;">1. DADOS DO CLIENTE</h3>
-            <table style="width: 100%; border-collapse: collapse; font-family: Arial; font-size: 14px;" border="1" bordercolor="#ddd">
-                <tr>
-                    <td style="background: #f9f9f9; width: 30%;"><b>Cliente / Projeto</b></td>
-                    <td>${projeto}</td>
-                </tr>
-                <tr>
-                    <td style="background: #f9f9f9;"><b>CNPJ</b></td>
-                    <td>${cnpj}</td>
-                </tr>
-                <tr>
-                    <td style="background: #f9f9f9;"><b>Consultor</b></td>
-                    <td>${consultor}</td>
-                </tr>
-                <tr>
-                    <td style="background: #f9f9f9;"><b>Previsão de Entrega</b></td>
-                    <td>${dataRef}</td>
-                </tr>
+            <h3>1. DADOS DO CLIENTE</h3>
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial;">
+                <tr><td width="30%"><b>Cliente/Projeto</b></td><td>${projeto}</td></tr>
+                <tr><td><b>CNPJ</b></td><td>${cnpj}</td></tr>
+                <tr><td><b>Consultor</b></td><td>${consultor}</td></tr>
+                <tr><td><b>Previsão Entrega</b></td><td>${dataRef}</td></tr>
             </table>
 
-            <h3 style="background: #f2f2f2; padding: 5px; border-left: 4px solid #333; margin-top: 20px;">2. DETALHAMENTO COMERCIAL</h3>
-            <table style="width: 100%; border-collapse: collapse; font-family: Arial; font-size: 14px;" border="1" bordercolor="#ddd">
-                <tr style="background: #333; color: white;">
-                    <th style="padding: 8px; text-align: left;">Item / Descrição</th>
-                    <th style="padding: 8px; width: 50px;">Qtd</th>
-                    <th style="padding: 8px; text-align: right; width: 120px;">Subtotal</th>
-                </tr>
-                ${linhasTabela}
+            <h3>2. ITENS DO ORÇAMENTO</h3>
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial;">
+                <tr style="background:#eee;"><td><b>Item</b></td><td width="50"><b>Qtd</b></td><td width="100" align="right"><b>Subtotal</b></td></tr>
+                ${linhas}
             </table>
+            
+            <h2 style="text-align: right; margin-top: 20px;">VALOR TOTAL: ${total}</h2>
+        </body></html>`;
 
-            <div style="text-align: right; margin-top: 20px;">
-                <p style="font-size: 18px; font-weight: bold; border-top: 2px solid #333; display: inline-block; padding-top: 5px;">
-                    VALOR TOTAL: ${totalFinal}
-                </p>
-            </div>
-
-        </body>
-        </html>`;
-
-        const blob = new Blob(['\ufeff', conteudoWord], { type: 'application/msword' });
+        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `${projeto.replace(/\s+/g, '_')}_CRC.doc`;
+        link.download = `${projeto}.doc`;
         link.click();
     }
 </script>
