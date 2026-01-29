@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Comercial PRO</title>
+    <title>Sistema CRC - Comercial Final</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #333; --bg: #f0f2f5; --success: #28a745; --danger: #dc3545; --warning: #ffc107; }
@@ -152,9 +152,9 @@
 
     function adicionarOuAtualizarPlano() {
         const select = document.getElementById('plano');
-        const valorUnit = parseFloat(select.value);
+        const valorUnit = parseFloat(select.value) || 0;
         let nomePlano = select.options[select.selectedIndex].text.split(' - ')[0];
-        const qtd = parseInt(document.getElementById('qtdPlano').value);
+        const qtd = parseInt(document.getElementById('qtdPlano').value) || 1;
         const servico = document.getElementById('servico').value;
         const dataE = document.getElementById('dataEntrega').value;
         
@@ -164,7 +164,10 @@
 
         if (valorUnit === 0) return alert("Selecione um plano primeiro.");
 
+        // Nome diferenciado para Parceira
         const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
+        
+        // Cálculo do total
         const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
 
         const dadosItem = {
@@ -182,157 +185,4 @@
         };
 
         if (idEdicao !== null) {
-            const index = planosAdicionados.findIndex(p => p.id === idEdicao);
-            planosAdicionados[index] = dadosItem;
-            idEdicao = null;
-            document.getElementById('btn-add-update').innerText = "+ ADICIONAR PLANO AO ORÇAMENTO";
-            document.getElementById('btn-add-update').style.backgroundColor = "var(--success)";
-        } else {
-            planosAdicionados.push(dadosItem);
-        }
-
-        resetCamposItem();
-        atualizarResumo();
-    }
-
-    function resetCamposItem() {
-        document.getElementById('plano').value = "0";
-        document.getElementById('qtdPlano').value = "1";
-        document.getElementById('servico').value = "Internet";
-        document.getElementById('dataEntrega').value = "";
-        document.getElementById('parceiraCheck').value = "nao";
-        document.getElementById('qtdParceira').value = "0";
-        document.getElementById('valorParceira').value = "0";
-        toggleParceira();
-    }
-
-    function removerItem(id) {
-        planosAdicionados = planosAdicionados.filter(p => p.id !== id);
-        atualizarResumo();
-    }
-
-    function editarItem(id) {
-        const item = planosAdicionados.find(p => p.id === id);
-        if (!item) return;
-
-        const select = document.getElementById('plano');
-        for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].text.includes(item.nomePuro)) {
-                select.selectedIndex = i;
-                break;
-            }
-        }
-
-        document.getElementById('qtdPlano').value = item.qtd;
-        document.getElementById('servico').value = item.servico;
-        document.getElementById('dataEntrega').value = item.dataEntrega;
-        document.getElementById('parceiraCheck').value = item.temParceira ? "sim" : "nao";
-        toggleParceira();
-        document.getElementById('qtdParceira').value = item.qtdParc;
-        document.getElementById('valorParceira').value = item.valParc;
-
-        idEdicao = id;
-        document.getElementById('btn-add-update').innerText = "ATUALIZAR ITEM SELECIONADO";
-        document.getElementById('btn-add-update').style.backgroundColor = "var(--warning)";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function atualizarResumo() {
-        const lista = document.getElementById('lista-resumo');
-        lista.innerHTML = "";
-        let totalGeral = 0;
-
-        if (planosAdicionados.length === 0) {
-            lista.innerHTML = `<li style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">Nenhum item adicionado.</li>`;
-            document.getElementById('valorTotalFinal').innerText = "R$ 0,00";
-            return;
-        }
-
-        planosAdicionados.forEach((p) => {
-            totalGeral += p.totalItem;
-            lista.innerHTML += `
-                <li class="item-resumo">
-                    <div class="item-info">
-                        <b>${p.nome}</b>
-                        <span>${p.qtd} un x R$ ${p.valorUnit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                    </div>
-                    <div class="item-acoes">
-                        <div style="font-weight: bold; margin-right: 5px;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                        <button class="btn-acao btn-edit" onclick="editarItem(${p.id})"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-acao btn-delete" onclick="removerItem(${p.id})"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </li>`;
-        });
-        document.getElementById('valorTotalFinal').innerText = "R$ " + totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-    }
-
-    function gerar() {
-        if (planosAdicionados.length === 0) return alert("Adicione pelo menos um plano.");
-        
-        const projeto = document.getElementById('projeto').value || "CRC_Doc";
-        const cnpj = document.getElementById('cnpj').value || "Não informado";
-        const consultor = document.getElementById('consultor').value || "Não informado";
-        const hoje = new Date().toLocaleDateString('pt-BR');
-        
-        // No Word, pegaremos a data de entrega do primeiro item ou deixaremos dinâmico
-        const dataEntregaDoc = planosAdicionados[0].dataEntrega ? new Date(planosAdicionados[0].dataEntrega).toLocaleDateString('pt-BR') : "Não informada";
-
-        let itensWord = planosAdicionados.map(p => `
-            <tr>
-                <td style="border: 1px solid #ccc; padding: 5px; font-family: Arial;">${p.nome}</td>
-                <td style="border: 1px solid #ccc; padding: 5px; font-family: Arial; text-align: center;">${p.qtd}</td>
-                <td style="border: 1px solid #ccc; padding: 5px; font-family: Arial; text-align: right;">R$ ${p.totalItem.toFixed(2)}</td>
-            </tr>`).join('');
-
-        const html = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body style="font-family: Arial, sans-serif;">
-            <h2 style="border-bottom: 2px solid #000; font-family: Arial;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
-            
-            <p style="font-family: Arial;"><b>Data de geração:</b> ${hoje}</p>
-            
-            <h3 style="color: #000; font-family: Arial; margin-top: 15px;">1. Dados do Cliente</h3>
-            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse; font-family: Arial;">
-                <tr style="background-color: #f2f2f2;">
-                    <td style="width: 30%;"><b>CNPJ</b></td>
-                    <td>${cnpj}</td>
-                </tr>
-                <tr>
-                    <td><b>Cliente/Projeto</b></td>
-                    <td>${projeto}</td>
-                </tr>
-                <tr style="background-color: #f2f2f2;">
-                    <td><b>Consultor</b></td>
-                    <td>${consultor}</td>
-                </tr>
-                <tr>
-                    <td><b>Data de Entrega (Item 1)</b></td>
-                    <td>${dataEntregaDoc}</td>
-                </tr>
-            </table>
-
-            <h3 style="color: #000; font-family: Arial; margin-top: 20px;">2. Detalhamento dos Planos</h3>
-            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse; font-family: Arial;">
-                <tr style="background: #eee;">
-                    <td><b>Item / Plano</b></td>
-                    <td style="text-align:center;"><b>Qtd</b></td>
-                    <td style="text-align:right;"><b>Total</b></td>
-                </tr>
-                ${itensWord}
-            </table>
-            
-            <h2 style="text-align: right; font-family: Arial; margin-top: 20px; border-top: 2px solid #000; padding-top: 10px;">
-                VALOR TOTAL: ${document.getElementById('valorTotalFinal').innerText}
-            </h2>
-        </body></html>`;
-
-        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${projeto.replace(/\s/g, '_')}.doc`;
-        link.click();
-    }
-</script>
-</body>
-</html>
+            const index = planosAdicionados
