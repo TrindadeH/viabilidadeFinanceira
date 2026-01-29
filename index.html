@@ -19,18 +19,18 @@
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-success { background: var(--success); color: white; width: 100%; margin: 20px 0 10px 0; font-size: 15px; }
-        .btn-secondary { background: #6c757d; color: white; width: 100%; margin-top: 10px; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; margin: 20px 0 10px 0; font-size: 15px; }
+        .btn-secondary { background: #6c757d; color: white; margin-top: 10px; }
         
-        /* Estilo dos itens no resumo */
+        /* Estilos dos itens com ícones no resumo */
         #lista-resumo { list-style: none; padding: 0; margin-top: 15px; }
         .item-resumo { font-size: 13px; padding: 12px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .item-info b { color: #333; display: block; }
         .item-info span { color: #777; font-size: 11px; display: block; }
         
-        .item-acoes { display: flex; gap: 8px; }
+        .item-acoes { display: flex; gap: 8px; align-items: center; }
         .btn-acao { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; font-size: 16px; }
         .btn-edit { color: var(--warning); }
         .btn-edit:hover { background: #fff9e6; }
@@ -110,7 +110,7 @@
 
             <div style="border-top: 1px solid #eee; padding-top: 10px;">
                 <button class="btn btn-primary" onclick="gerar()">GERAR DOCUMENTO WORD</button>
-                <button class="btn btn-secondary" onclick="show('menu')">CANCELAR</button>
+                <button class="btn btn-secondary" onclick="show('menu')">VOLTAR AO INÍCIO</button>
             </div>
         </div>
     </div>
@@ -129,7 +129,7 @@
 
 <script>
     let planosAdicionados = [];
-    let idEdicao = null; // Controla se estamos editando um item
+    let idEdicao = null; // Para saber se estamos editando um item específico
 
     function show(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -171,7 +171,7 @@
         const dadosItem = {
             id: idEdicao !== null ? idEdicao : Date.now(),
             nome: nomeFinal,
-            nomePuro: nomePlano, // Guardamos para a edição
+            nomePuro: nomePlano, 
             qtd: qtd,
             valorUnit: valorUnit,
             servico: servico,
@@ -183,14 +183,14 @@
         };
 
         if (idEdicao !== null) {
-            // Atualiza item existente
+            // Se estamos editando, substitui o item na lista
             const index = planosAdicionados.findIndex(p => p.id === idEdicao);
             planosAdicionados[index] = dadosItem;
             idEdicao = null;
             document.getElementById('btn-add-update').innerText = "+ ADICIONAR PLANO AO ORÇAMENTO";
             document.getElementById('btn-add-update').style.backgroundColor = "var(--success)";
         } else {
-            // Adiciona novo
+            // Se for novo, adiciona no array
             planosAdicionados.push(dadosItem);
         }
 
@@ -218,8 +218,7 @@
         const item = planosAdicionados.find(p => p.id === id);
         if (!item) return;
 
-        // Carrega valores de volta para o form
-        // Busca o valor no select pelo nome original
+        // Preenche os campos de volta para edição
         const select = document.getElementById('plano');
         for (let i = 0; i < select.options.length; i++) {
             if (select.options[i].text.includes(item.nomePuro)) {
@@ -240,7 +239,7 @@
         document.getElementById('btn-add-update').innerText = "ATUALIZAR ITEM SELECIONADO";
         document.getElementById('btn-add-update').style.backgroundColor = "var(--warning)";
         
-        // Rola a tela para o formulário
+        // Move o foco para o início do formulário
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -265,7 +264,7 @@
                         <span>${p.qtd} un x R$ ${p.valorUnit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
                     <div class="item-acoes">
-                        <div style="font-weight: bold; margin-right: 10px;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        <div style="font-weight: bold; margin-right: 5px;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                         <button class="btn-acao btn-edit" onclick="editarItem(${p.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
                         <button class="btn-acao btn-delete" onclick="removerItem(${p.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                     </div>
