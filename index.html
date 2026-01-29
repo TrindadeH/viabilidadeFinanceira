@@ -4,48 +4,116 @@
     <meta charset="UTF-8">
     <title>Sistema CRC - Comercial</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; }
+        :root { --primary: #333; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 550px; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; margin-top: 0; }
+        h3 { font-size: 14px; color: #666; text-transform: uppercase; margin-top: 20px; border-left: 4px solid var(--primary); padding-left: 10px; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-primary { background: #333; color: white; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #444; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input:read-only { background-color: #f9f9f9; color: #777; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #000; }
         .btn-secondary { background: #6c757d; color: white; margin-top: 5px; }
+        #secao-parceira { background: #fdfdfd; border: 1px dashed #ccc; padding: 15px; border-radius: 8px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div id="menu">
-        <h2>Sistema CRC</h2>
+        <h1 style="text-align: center; color: var(--primary);">Sistema CRC</h1>
+        <p style="text-align: center; color: #888;">Gestão de Custo Operacional</p>
         <button class="btn btn-primary" onclick="show('form')">SETOR COMERCIAL</button>
     </div>
 
     <div id="form" style="display:none;">
         <h2>Dados Comercial</h2>
+        
         <div class="form-group">
-            <label>Cliente</label>
-            <input type="text" id="cli">
+            <label>Cliente/Projeto</label>
+            <input type="text" id="projeto">
         </div>
-        <div class="form-group">
-            <label>CNPJ</label>
-            <input type="text" id="cnpj" placeholder="00.000.000/0000-00">
+
+        <div class="row">
+            <div class="form-group">
+                <label>CNPJ</label>
+                <input type="text" id="cnpj" placeholder="00.000.000/0000-00">
+            </div>
+            <div class="form-group">
+                <label>Consultor</label>
+                <input type="text" id="consultor">
+            </div>
         </div>
+
         <div class="form-group">
             <label>Plano</label>
-            <select id="pl" onchange="calc()">
-                <option value="0">Selecione...</option>
-                <option value="150">Plano Básico - R$ 150,00</option>
-                <option value="300">Plano Pro - R$ 300,00</option>
+            <select id="plano" onchange="calc()">
+                <option value="0">Selecione um plano...</option>
+                <option value="150">Plano Smart - R$ 150,00</option>
+                <option value="300">Plano Business - R$ 300,00</option>
+                <option value="500">Plano Enterprise - R$ 500,00</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>Total: <span id="tot">R$ 0,00</span></label>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Quantidade de Plano</label>
+                <input type="number" id="qtdPlano" value="1" min="1" oninput="calc()">
+            </div>
+            <div class="form-group">
+                <label>Valor Unitário (R$)</label>
+                <input type="text" id="valorUnit" readonly>
+            </div>
         </div>
-        <button class="btn btn-primary" onclick="gerar()">GERAR WORD ARIAL</button>
-        <button class="btn btn-secondary" onclick="show('menu')">VOLTAR</button>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Tipo de Serviço</label>
+                <select id="servico">
+                    <option value="Internet">Internet</option>
+                    <option value="Voz">Voz</option>
+                    <option value="Dados">Dados</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Data da Entrega</label>
+                <input type="date" id="dataEntrega">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Parceira?</label>
+            <select id="parceiraCheck" onchange="toggleParceira()">
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+            </select>
+        </div>
+
+        <div id="secao-parceira">
+            <h3>Dados da Parceira</h3>
+            <div class="row">
+                <div class="form-group">
+                    <label>Qtd. Pontos Parceira</label>
+                    <input type="number" id="qtdParceira" value="0" oninput="calc()">
+                </div>
+                <div class="form-group">
+                    <label>Valor por Ponto (R$)</label>
+                    <input type="number" id="valorParceira" value="0" oninput="calc()">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+            <label style="font-size: 16px;">Valor Total Final</label>
+            <input type="text" id="valorTotal" readonly style="font-size: 20px; font-weight: bold; color: #2e7d32; background: #e8f5e9; border: 1px solid #2e7d32;">
+        </div>
+
+        <button class="btn btn-primary" onclick="gerar()">GERAR WORD EM ARIAL</button>
+        <button class="btn btn-secondary" onclick="show('menu')">VOLTAR AO MENU</button>
     </div>
 </div>
 
@@ -55,28 +123,83 @@
         document.getElementById('form').style.display = id === 'form' ? 'block' : 'none';
     }
 
+    function toggleParceira() {
+        const isSim = document.getElementById('parceiraCheck').value === 'sim';
+        document.getElementById('secao-parceira').style.display = isSim ? 'block' : 'none';
+        if(!isSim) {
+            document.getElementById('qtdParceira').value = 0;
+            document.getElementById('valorParceira').value = 0;
+        }
+        calc();
+    }
+
     function calc() {
-        const v = document.getElementById('pl').value;
-        document.getElementById('tot').innerText = "R$ " + parseFloat(v).toFixed(2);
+        const vUnitPlano = parseFloat(document.getElementById('plano').value) || 0;
+        const qtdPlano = parseInt(document.getElementById('qtdPlano').value) || 0;
+        
+        const qtdParceira = parseInt(document.getElementById('qtdParceira').value) || 0;
+        const vUnitParceira = parseFloat(document.getElementById('valorParceira').value) || 0;
+
+        document.getElementById('valorUnit').value = vUnitPlano.toFixed(2);
+
+        const total = (vUnitPlano * qtdPlano) + (qtdParceira * vUnitParceira);
+        document.getElementById('valorTotal').value = "R$ " + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     }
 
     function gerar() {
-        const cliente = document.getElementById('cli').value || "Documento";
-        const total = document.getElementById('tot').innerText;
-        
+        const dados = {
+            projeto: document.getElementById('projeto').value || "Não informado",
+            cnpj: document.getElementById('cnpj').value || "Não informado",
+            consultor: document.getElementById('consultor').value || "Não informado",
+            plano: document.getElementById('plano').options[document.getElementById('plano').selectedIndex].text,
+            qtd: document.getElementById('qtdPlano').value,
+            vUnit: document.getElementById('valorUnit').value,
+            servico: document.getElementById('servico').value,
+            entrega: document.getElementById('dataEntrega').value,
+            total: document.getElementById('valorTotal').value,
+            parceira: document.getElementById('parceiraCheck').value.toUpperCase(),
+            qtdParc: document.getElementById('qtdParceira').value,
+            vParc: document.getElementById('valorParceira').value
+        };
+
         const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
-            <h2 style="font-family: Arial;">RESUMO DE CUSTO OPERACIONAL</h2>
-            <p style="font-family: Arial;"><b>Cliente:</b> ${cliente}</p>
-            <p style="font-family: Arial;"><b>Valor Total:</b> ${total}</p>
+            <h2 style="font-family: Arial; border-bottom: 2px solid #000;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
+            
+            <h3 style="font-family: Arial;">1. Identificação</h3>
+            <p style="font-family: Arial;"><b>Projeto:</b> ${dados.projeto} | <b>CNPJ:</b> ${dados.cnpj}</p>
+            <p style="font-family: Arial;"><b>Consultor:</b> ${dados.consultor} | <b>Data Entrega:</b> ${dados.entrega}</p>
+
+            <h3 style="font-family: Arial;">2. Detalhes do Plano</h3>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse; font-family: Arial;">
+                <tr style="background-color: #f2f2f2;">
+                    <td><b>Plano</b></td><td>${dados.plano}</td>
+                </tr>
+                <tr>
+                    <td><b>Quantidade</b></td><td>${dados.qtd}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td><b>Valor Unitário</b></td><td>R$ ${dados.vUnit}</td>
+                </tr>
+                <tr>
+                    <td><b>Serviço</b></td><td>${dados.servico}</td>
+                </tr>
+            </table>
+
+            <h3 style="font-family: Arial;">3. Parceira</h3>
+            <p style="font-family: Arial;"><b>Possui Parceira:</b> ${dados.parceira}</p>
+            ${dados.parceira === 'SIM' ? `<p style="font-family: Arial;"><b>Qtd Pontos:</b> ${dados.qtdParc} | <b>Valor por Ponto:</b> R$ ${dados.vParc}</p>` : ''}
+
+            <hr>
+            <h2 style="font-family: Arial; text-align: right;">VALOR TOTAL: ${dados.total}</h2>
         </body></html>`;
 
         const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `CRC_${cliente}.doc`;
+        link.download = `CRC_${dados.projeto}.doc`;
         link.click();
     }
 </script>
