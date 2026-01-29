@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado (Arquivo)</title>
+    <title>Sistema CRC - Integrado (Final)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -46,9 +46,10 @@
         .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         .btn-add-inline:hover { background-color: #218838; }
         
-        /* Botão Verde Grande para Adicionar Plano */
+        /* Botão Adicionar/Salvar Item */
         .btn-add-block { background-color: var(--success); color: white; margin-top: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
         .btn-add-block:hover { background-color: #218838; }
+        .btn-add-block.editing { background-color: var(--warning); color: #333; }
 
         .btn-generate { background: #333; color: white; margin-top: 10px; padding: 15px; font-size: 14px; }
         .btn-generate:hover { background: #000; }
@@ -72,9 +73,10 @@
         .lbl-total { font-size: 11px; font-weight: bold; color: #777; text-transform: uppercase; display: block; }
         .val-total { font-size: 28px; font-weight: bold; color: var(--success); }
 
-        .acoes-item { display: flex; gap: 5px; }
-        .btn-icon { background: none; border: none; cursor: pointer; color: #999; font-size: 14px; padding: 5px; }
-        .btn-icon:hover { color: var(--primary); }
+        .acoes-item { display: flex; gap: 5px; align-items: center; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: #999; font-size: 14px; padding: 5px; transition: 0.2s; }
+        .btn-icon:hover { color: var(--primary); transform: scale(1.1); }
+        .btn-icon.edit:hover { color: var(--warning); }
         .btn-icon.del:hover { color: var(--danger); }
 
         #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
@@ -168,7 +170,7 @@
             </div>
         </div>
 
-        <button class="btn btn-add-block" onclick="adicionarPlanoComercial()">
+        <button id="btn-add-comercial" class="btn btn-add-block" onclick="adicionarPlanoComercial()">
             <i class="fa-solid fa-plus"></i> ADICIONAR PLANO
         </button>
 
@@ -233,7 +235,7 @@
                 </select>
             </div>
 
-            <button class="btn btn-add-block" onclick="adicionarItemTecnico()">
+            <button id="btn-add-tecnico" class="btn btn-add-block" onclick="adicionarItemTecnico()">
                 <i class="fa-solid fa-plus"></i> ADICIONAR ITEM TÉCNICO
             </button>
 
@@ -279,6 +281,10 @@
         tecnico: { itens: [] }
     };
 
+    // Controle de Edição
+    let editIndexCom = null;
+    let editIndexTec = null;
+
     // --- NAVEGAÇÃO ---
     function irPara(telaId) {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -288,7 +294,6 @@
         const container = document.getElementById('main-container');
         const blocoTec = document.getElementById('bloco-resumo-tec');
 
-        // Configuração do Layout
         if (telaId === 'tela-inicial') {
             resumo.style.display = 'none';
             container.style.maxWidth = '800px';
@@ -298,7 +303,6 @@
             renderizarResumo();
         }
 
-        // Visibilidade do bloco técnico no resumo
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
         } else {
@@ -306,7 +310,7 @@
         }
     }
 
-    // --- COMERCIAL: Adicionar Item ---
+    // --- COMERCIAL: Adicionar ou Editar ---
     function adicionarPlanoComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
@@ -325,15 +329,33 @@
         const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
         const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
 
-        dadosProjeto.comercial.itens.push({
+        const itemObj = {
             id: Date.now(),
             nome: nomeFinal,
+            nomeOriginal: nomePlano, // Para re-selecionar ao editar
             qtd: qtd,
             valorUnit: valorUnit,
             servico: servico,
             dataEntrega: dataE,
+            temParceira: temParceira,
+            qtdParc: qtdParc,
+            valParc: valParc,
             total: totalItem
-        });
+        };
+
+        if (editIndexCom !== null) {
+            // Atualizar existente
+            dadosProjeto.comercial.itens[editIndexCom] = itemObj;
+            editIndexCom = null;
+            
+            // Reseta botão
+            const btn = document.getElementById('btn-add-comercial');
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> ADICIONAR PLANO';
+            btn.classList.remove('editing');
+        } else {
+            // Novo
+            dadosProjeto.comercial.itens.push(itemObj);
+        }
 
         // Limpa campos
         select.value = "0";
@@ -346,7 +368,7 @@
         renderizarResumo();
     }
 
-    // --- COMERCIAL: Exportar Arquivo (O "ID") ---
+    // --- COMERCIAL: Exportar ---
     function exportarArquivoProjeto() {
         if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de salvar.");
 
@@ -357,16 +379,13 @@
 
         const dataStr = JSON.stringify(dadosProjeto);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-
-        const exportFileDefaultName = `Projeto_CRC_${dadosProjeto.comercial.cliente}.json`;
-
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.setAttribute('download', `Projeto_CRC_${dadosProjeto.comercial.cliente}.json`);
         linkElement.click();
     }
 
-    // --- TÉCNICO: Carregar Arquivo ---
+    // --- TÉCNICO: Carregar ---
     function carregarArquivo(input) {
         const file = input.files[0];
         if (!file) return;
@@ -374,9 +393,7 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const json = JSON.parse(e.target.result);
-                dadosProjeto = json; // Carrega na memória
-                
+                dadosProjeto = JSON.parse(e.target.result);
                 document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
                 document.getElementById('tec_display_itens_qtd').innerText = dadosProjeto.comercial.itens.length;
                 
@@ -386,13 +403,13 @@
 
                 renderizarResumo();
             } catch (err) {
-                alert("Erro ao ler arquivo. Certifique-se que é um arquivo válido gerado pelo Comercial.");
+                alert("Erro ao ler arquivo.");
             }
         };
         reader.readAsText(file);
     }
 
-    // --- TÉCNICO: Adicionar Item ---
+    // --- TÉCNICO: Adicionar ou Editar ---
     function adicionarItemTecnico() {
         const nome = document.getElementById('tec_equipamento').value;
         if(!nome) return alert("Digite o nome do equipamento.");
@@ -400,17 +417,26 @@
         const qtd = parseInt(document.getElementById('tec_qtd').value) || 1;
         const valorUnit = parseFloat(document.getElementById('tec_valor').value) || 0;
         const tipo = document.getElementById('tec_tipo').value;
-        
         const totalItem = qtd * valorUnit;
 
-        dadosProjeto.tecnico.itens.push({
+        const itemObj = {
             id: Date.now(),
             nome: nome,
             qtd: qtd,
             valorUnit: valorUnit,
             tipo: tipo,
             total: totalItem
-        });
+        };
+
+        if (editIndexTec !== null) {
+            dadosProjeto.tecnico.itens[editIndexTec] = itemObj;
+            editIndexTec = null;
+            const btn = document.getElementById('btn-add-tecnico');
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> ADICIONAR ITEM TÉCNICO';
+            btn.classList.remove('editing');
+        } else {
+            dadosProjeto.tecnico.itens.push(itemObj);
+        }
 
         document.getElementById('tec_equipamento').value = "";
         document.getElementById('tec_qtd').value = "1";
@@ -418,110 +444,63 @@
         renderizarResumo();
     }
 
-    // --- GERAÇÃO DE WORD ---
-    function gerarDocumentoCompleto() {
-        gerarDocumentoWord(true);
-    }
+    // --- FUNÇÕES DE EDIÇÃO (CARREGAR DADOS) ---
+    function editarItem(tipo, index) {
+        if (tipo === 'com') {
+            const item = dadosProjeto.comercial.itens[index];
+            
+            // Popula campos
+            const select = document.getElementById('plano');
+            // Tenta encontrar o plano original no select
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].text.includes(item.nomeOriginal)) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+            
+            document.getElementById('qtdPlano').value = item.qtd;
+            document.getElementById('servico').value = item.servico;
+            document.getElementById('dataEntrega').value = item.dataEntrega;
+            document.getElementById('parceiraCheck').value = item.temParceira ? "sim" : "nao";
+            document.getElementById('qtdParceira').value = item.qtdParc;
+            document.getElementById('valorParceira').value = item.valParc;
+            toggleParceira();
 
-    function gerarDocumentoWord(completo) {
-        const com = dadosProjeto.comercial;
-        const tec = dadosProjeto.tecnico;
-        
-        if(!completo) {
-            com.cliente = document.getElementById('projeto').value || "Cliente";
-            com.cnpj = document.getElementById('cnpj').value;
-            com.consultor = document.getElementById('consultor').value;
+            // Configura estado de edição
+            editIndexCom = index;
+            const btn = document.getElementById('btn-add-comercial');
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> SALVAR ALTERAÇÃO';
+            btn.classList.add('editing');
+            
+            // Scroll suave
+            document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+
+        } else if (tipo === 'tec') {
+            const item = dadosProjeto.tecnico.itens[index];
+            document.getElementById('tec_equipamento').value = item.nome;
+            document.getElementById('tec_qtd').value = item.qtd;
+            document.getElementById('tec_valor').value = item.valorUnit;
+            document.getElementById('tec_tipo').value = item.tipo;
+
+            editIndexTec = index;
+            const btn = document.getElementById('btn-add-tecnico');
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> SALVAR ALTERAÇÃO';
+            btn.classList.add('editing');
+            
+            document.getElementById('area-tecnica-form').scrollIntoView({ behavior: 'smooth' });
         }
-
-        const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
-        const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
-
-        const totalComercial = com.itens.reduce((acc, i) => acc + i.total, 0);
-        const totalTecnico = tec.itens.reduce((acc, i) => acc + i.total, 0);
-        const totalGeral = totalComercial + totalTecnico;
-
-        const linhasComercial = com.itens.map(i => `
-            <tr>
-                <td style="padding:5px;">${i.nome}</td>
-                <td align="center">${i.qtd}</td>
-                <td align="right">${formatarMoeda(i.total)}</td>
-            </tr>`).join('');
-
-        const linhasTecnico = tec.itens.map(i => `
-            <tr>
-                <td style="padding:5px;">${i.nome} <br><span style="font-size:10px; color:#555;">(Equipe: ${i.tipo})</span></td>
-                <td align="center">${i.qtd}</td>
-                <td align="right">${formatarMoeda(i.valorUnit)}</td>
-                <td align="right">${formatarMoeda(i.total)}</td>
-            </tr>`).join('');
-
-        const blocoTecnicoHTML = completo ? `
-            <h3 style="color:#000; margin-top:20px;">3. ESCOPO TÉCNICO</h3>
-            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse:collapse; font-family:Arial;">
-                <tr style="background:#eee;"><td><b>Equipamento / Mão de Obra</b></td><td width="50" align="center"><b>Qtd</b></td><td width="100" align="right"><b>Unit.</b></td><td width="100" align="right"><b>Total</b></td></tr>
-                ${linhasTecnico.length > 0 ? linhasTecnico : '<tr><td colspan="4" align="center">Nenhum item técnico.</td></tr>'}
-                <tr><td colspan="3" align="right"><b>Subtotal Técnico:</b></td><td align="right"><b>${formatarMoeda(totalTecnico)}</b></td></tr>
-            </table>
-        ` : '';
-
-        const html = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body style="font-family: Arial, sans-serif;">
-            <h2 style="border-bottom: 2px solid #333;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
-            <p>Data de geração: ${new Date().toLocaleDateString('pt-BR')}</p>
-            
-            <h3>1. DADOS DO CLIENTE</h3>
-            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial;">
-                <tr><td width="30%" bgcolor="#f2f2f2"><b>CNPJ</b></td><td>${com.cnpj}</td></tr>
-                <tr><td bgcolor="#f2f2f2"><b>Cliente</b></td><td>${com.cliente}</td></tr>
-                <tr><td bgcolor="#f2f2f2"><b>Consultor</b></td><td>${com.consultor}</td></tr>
-                <tr><td bgcolor="#f2f2f2"><b>Tipo de Serviço</b></td><td>${servicoRef}</td></tr>
-                <tr><td bgcolor="#f2f2f2"><b>Data de Entrega</b></td><td>${dataRef}</td></tr>
-            </table>
-
-            <h3>2. DADOS COMERCIAIS</h3>
-            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial;">
-                <tr style="background:#eee;"><td><b>Plano / Item</b></td><td width="50" align="center"><b>Qtd</b></td><td width="100" align="right"><b>Total</b></td></tr>
-                ${linhasComercial}
-                <tr><td colspan="2" align="right"><b>Subtotal Comercial:</b></td><td align="right"><b>${formatarMoeda(totalComercial)}</b></td></tr>
-            </table>
-
-            ${blocoTecnicoHTML}
-            
-            <br>
-            <div style="text-align: right; border-top: 2px solid #000; padding-top: 10px;">
-                <span style="font-size: 16pt; font-weight: bold;">VALOR TOTAL DO PROJETO: ${formatarMoeda(totalGeral)}</span>
-            </div>
-        </body></html>`;
-
-        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `CRC_${com.cliente}_${completo ? 'Completo' : 'Comercial'}.doc`;
-        link.click();
     }
 
-    // --- UTILITÁRIOS ---
-    function mascaraCNPJ(i) {
-        let v = i.value.replace(/\D/g, "").substring(0, 14);
-        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
-        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
-        v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
-        v = v.replace(/(\d{4})(\d)/, "$1-$2");
-        i.value = v;
-    }
-    function toggleParceira() {
-        const display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
-        document.getElementById('secao-parceira').style.display = display;
-    }
-    function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-    function formatarDataBR(d) { 
-        if (!d) return "---";
-        const [ano, mes, dia] = d.split('-');
-        return `${dia}/${mes}/${ano}`;
+    function removerItem(tipo, index) {
+        if(confirm("Deseja realmente remover este item?")) {
+            if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
+            if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
+            renderizarResumo();
+        }
     }
 
+    // --- RENDERIZAÇÃO ---
     function renderizarResumo() {
         const listaCom = document.getElementById('lista-resumo-com');
         const listaTec = document.getElementById('lista-resumo-tec');
@@ -536,8 +515,11 @@
                 listaCom.innerHTML += `
                     <li class="item-resumo">
                         <div class="item-info"><b>${item.nome}</b><span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
-                        <div class="acoes-item"><span style="font-weight:bold;">${formatarMoeda(item.total)}</span>
-                        <button class="btn-icon del" onclick="removerItem('com', ${index})"><i class="fa-solid fa-trash"></i></button></div>
+                        <div class="acoes-item">
+                            <span style="font-weight:bold; margin-right:5px;">${formatarMoeda(item.total)}</span>
+                            <button class="btn-icon edit" onclick="editarItem('com', ${index})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon del" onclick="removerItem('com', ${index})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </li>`;
             });
         } else {
@@ -552,8 +534,11 @@
                 listaTec.innerHTML += `
                     <li class="item-resumo">
                         <div class="item-info"><b>${item.nome}</b><span>${item.tipo} | ${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
-                        <div class="acoes-item"><span style="font-weight:bold;">${formatarMoeda(item.total)}</span>
-                        <button class="btn-icon del" onclick="removerItem('tec', ${index})"><i class="fa-solid fa-trash"></i></button></div>
+                        <div class="acoes-item">
+                            <span style="font-weight:bold; margin-right:5px;">${formatarMoeda(item.total)}</span>
+                            <button class="btn-icon edit" onclick="editarItem('tec', ${index})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon del" onclick="removerItem('tec', ${index})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </li>`;
             });
         } else {
@@ -563,11 +548,66 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    function removerItem(tipo, index) {
-        if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
-        if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
-        renderizarResumo();
+    // --- GERAÇÃO WORD E UTILITÁRIOS ---
+    function gerarDocumentoCompleto() { gerarDocumentoWord(true); }
+
+    function gerarDocumentoWord(completo) {
+        const com = dadosProjeto.comercial;
+        const tec = dadosProjeto.tecnico;
+        
+        if(!completo) {
+            com.cliente = document.getElementById('projeto').value || "Cliente";
+            com.cnpj = document.getElementById('cnpj').value;
+            com.consultor = document.getElementById('consultor').value;
+        }
+
+        const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
+        const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
+        const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
+
+        const linhasCom = com.itens.map(i => `<tr><td style="padding:5px;">${i.nome}</td><td align="center">${i.qtd}</td><td align="right">${formatarMoeda(i.total)}</td></tr>`).join('');
+        const linhasTec = tec.itens.map(i => `<tr><td style="padding:5px;">${i.nome} (${i.tipo})</td><td align="center">${i.qtd}</td><td align="right">${formatarMoeda(i.valorUnit)}</td><td align="right">${formatarMoeda(i.total)}</td></tr>`).join('');
+
+        const blocoTecnico = completo ? `
+            <h3>3. ESCOPO TÉCNICO</h3>
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse:collapse;">
+                <tr style="background:#eee;"><td><b>Item</b></td><td><b>Qtd</b></td><td><b>Unit.</b></td><td><b>Total</b></td></tr>
+                ${linhasTec.length ? linhasTec : '<tr><td colspan="4" align="center">Vazio</td></tr>'}
+            </table>` : '';
+
+        const html = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <body style="font-family:Arial;">
+            <h2>RESUMO CRC</h2>
+            <h3>1. CLIENTE</h3>
+            <p>Cliente: ${com.cliente} | CNPJ: ${com.cnpj} | Consultor: ${com.consultor}</p>
+            <h3>2. COMERCIAL</h3>
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse:collapse;">
+                <tr style="background:#eee;"><td><b>Item</b></td><td><b>Qtd</b></td><td><b>Total</b></td></tr>
+                ${linhasCom}
+            </table>
+            ${blocoTecnico}
+            <br>
+            <div style="text-align:right; font-size:16pt; font-weight:bold;">TOTAL: ${formatarMoeda(totalGeral)}</div>
+        </body></html>`;
+
+        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `CRC_${com.cliente}.doc`;
+        link.click();
     }
+
+    function mascaraCNPJ(i) {
+        let v = i.value.replace(/\D/g, "").substring(0, 14);
+        v = v.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
+        i.value = v;
+    }
+    function toggleParceira() {
+        document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
+    }
+    function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    function formatarDataBR(d) { return d ? d.split('-').reverse().join('/') : "---"; }
 </script>
 </body>
 </html>
