@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado (Final)</title>
+    <title>Sistema CRC - Busca por ID</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -41,10 +41,10 @@
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-        /* BOTÕES GERAIS */
+        /* BOTÕES */
         .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
         
-        /* BOTÃO ADICIONAR (Compacto/Enxuto) */
+        /* Botão Adicionar Item (Compacto) */
         .btn-add-compact { 
             background-color: var(--success); color: white; border: none; 
             padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; 
@@ -56,18 +56,29 @@
 
         .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         
-        /* BOTÕES DE AÇÃO DO ARQUIVO/DOC */
+        /* Botões Específicos */
         .btn-generate { background: #333; color: white; margin-top: 10px; padding: 15px; font-size: 14px; }
         .btn-generate:hover { background: #000; }
         
+        .btn-save-id { background: var(--info); color: white; margin-top: 20px; padding: 15px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-save-id:hover { background: #138496; }
+
         .btn-save-tec { background: var(--warning); color: #333; margin-top: 20px; padding: 15px; font-size: 14px; }
         .btn-save-tec:hover { background: #ffca2c; }
 
         .btn-back { background: #6c757d; color: white; margin-top: 10px; }
         .btn-back:hover { background: #5a6268; }
 
-        .btn-upload { background: var(--info); color: white; margin-top: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
-        .btn-upload:hover { background: #138496; }
+        /* Busca Técnico */
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input { flex: 1; padding: 12px; font-size: 16px; border: 2px solid #ddd; }
+        .search-box input:focus { border-color: var(--accent); }
+        .search-box button { width: auto; padding: 0 25px; background: var(--accent); color: white; border-radius: 5px; cursor: pointer; font-weight: bold; border: none; }
+
+        /* INFO BOX (Resultado da Busca) */
+        .info-box { background: #e3f2fd; border-left: 5px solid #2196f3; padding: 15px; border-radius: 4px; margin-bottom: 20px; display: none; animation: fadeIn 0.5s; }
+        .info-box h4 { margin: 0 0 5px 0; color: #0d47a1; font-size: 15px; }
+        .info-box p { margin: 0; color: #555; font-size: 13px; line-height: 1.5; }
 
         /* RESUMO LATERAL */
         #lista-resumo { list-style: none; padding: 0; margin-top: 20px; border-top: 1px solid #eee; }
@@ -105,12 +116,12 @@
             <div class="menu-btn" onclick="irPara('tela-comercial')">
                 <i class="fa-solid fa-briefcase"></i>
                 <h3>Comercial</h3>
-                <p>Criar orçamentos e exportar arquivo.</p>
+                <p>Criar orçamentos e gerar ID.</p>
             </div>
             <div class="menu-btn" onclick="irPara('tela-tecnica')">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <h3>Equipe Técnica</h3>
-                <p>Carregar arquivo e complementar.</p>
+                <p>Buscar ID e complementar.</p>
             </div>
         </div>
     </div>
@@ -178,14 +189,14 @@
 
         <div style="text-align: right;">
             <button id="btn-add-comercial" class="btn-add-compact" onclick="adicionarPlanoComercial()">
-                <i class="fa-solid fa-plus"></i> Adicionar Plano
+                <i class="fa-solid fa-plus"></i> ADICIONAR PLANO
             </button>
         </div>
 
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-        <button class="btn btn-upload" onclick="exportarArquivoProjeto()">
-            <i class="fa-solid fa-download"></i> SALVAR ARQUIVO PARA EQUIPE TÉCNICA
+        <button class="btn btn-save-id" onclick="salvarComercialEGerarID()">
+            <i class="fa-solid fa-key"></i> SALVAR E GERAR ID DO PROJETO
         </button>
         
         <button class="btn btn-generate" onclick="gerarDocumentoWord(false)">APENAS GERAR WORD (PRELIMINAR)</button>
@@ -195,20 +206,21 @@
     <div id="tela-tecnica" class="card screen">
         <h2><i class="fa-solid fa-screwdriver-wrench"></i> Escopo Técnico</h2>
         
-        <div id="area-upload" style="border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; background: #f9f9f9;">
-            <i class="fa-solid fa-file-import" style="font-size: 30px; color: #999; margin-bottom: 10px;"></i>
-            <p style="margin: 0; color: #555; font-size: 14px;">Carregue o arquivo gerado pelo Comercial</p>
-            <input type="file" id="arquivoInput" accept=".json" style="display: none;" onchange="carregarArquivo(this)">
-            <button class="btn btn-add-inline" style="margin: 10px auto; width: auto;" onclick="document.getElementById('arquivoInput').click()">
-                Selecionar Arquivo
-            </button>
+        <div id="area-busca">
+            <label style="margin-bottom: 10px; display: block;">Buscar Projeto Comercial</label>
+            <div class="search-box">
+                <input type="text" id="buscaIdInput" placeholder="Digite o ID (ex: 1234)">
+                <button onclick="buscarProjetoPorID()"><i class="fa-solid fa-search"></i> BUSCAR</button>
+            </div>
         </div>
 
-        <div id="info-projeto-carregado" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
-            <p style="margin: 0; font-size: 13px; color: #555;">
-                <i class="fa-solid fa-check-circle"></i> 
-                Projeto carregado: <b id="tec_display_cliente">---</b><br>
-                Itens comerciais importados: <span id="tec_display_itens_qtd">0</span>
+        <div id="info-projeto-encontrado" class="info-box">
+            <h4><i class="fa-solid fa-check-circle"></i> Projeto Encontrado!</h4>
+            <p>
+                <b>Cliente:</b> <span id="tec_display_cliente">---</span><br>
+                <b>Consultor:</b> <span id="tec_display_consultor">---</span><br>
+                <b>Data do Cadastro:</b> <span id="tec_display_data">---</span><br>
+                <b>Itens Comerciais:</b> <span id="tec_display_itens_qtd">0</span>
             </p>
         </div>
 
@@ -245,7 +257,7 @@
 
             <div style="text-align: right;">
                 <button id="btn-add-tecnico" class="btn-add-compact" onclick="adicionarItemTecnico()">
-                    <i class="fa-solid fa-plus"></i> Adicionar Item
+                    <i class="fa-solid fa-plus"></i> ADICIONAR ITEM TÉCNICO
                 </button>
             </div>
 
@@ -287,11 +299,11 @@
     // --- ESTADO DA APLICAÇÃO ---
     let dadosProjeto = {
         id: null,
+        dataCriacao: null,
         comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
         tecnico: { itens: [] }
     };
 
-    // Controle de Edição
     let editIndexCom = null;
     let editIndexTec = null;
 
@@ -320,7 +332,7 @@
         }
     }
 
-    // --- COMERCIAL: Adicionar ou Editar ---
+    // --- COMERCIAL: Adicionar/Editar ---
     function adicionarPlanoComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
@@ -357,7 +369,7 @@
             dadosProjeto.comercial.itens[editIndexCom] = itemObj;
             editIndexCom = null;
             const btn = document.getElementById('btn-add-comercial');
-            btn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Plano';
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> ADICIONAR PLANO';
             btn.classList.remove('editing');
         } else {
             dadosProjeto.comercial.itens.push(itemObj);
@@ -369,52 +381,63 @@
         document.getElementById('qtdParceira').value = "0";
         document.getElementById('valorParceira').value = "0";
         toggleParceira();
-        
         renderizarResumo();
     }
 
-    // --- COMERCIAL: Exportar ---
-    function exportarArquivoProjeto() {
+    // --- COMERCIAL: Salvar e Gerar ID (LOCAL STORAGE) ---
+    function salvarComercialEGerarID() {
         if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de salvar.");
 
+        // Captura dados
         dadosProjeto.comercial.cliente = document.getElementById('projeto').value || "Cliente";
         dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
         dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
-        dadosProjeto.id = Date.now();
+        
+        // Gera ID (Número aleatório de 4 dígitos)
+        const novoID = Math.floor(1000 + Math.random() * 9000);
+        dadosProjeto.id = novoID;
+        dadosProjeto.dataCriacao = new Date().toLocaleDateString('pt-BR');
 
-        const dataStr = JSON.stringify(dadosProjeto);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', `Projeto_CRC_${dadosProjeto.comercial.cliente}.json`);
-        linkElement.click();
+        // SALVA NO BANCO DO NAVEGADOR
+        let banco = JSON.parse(localStorage.getItem('db_crc_sistema')) || {};
+        banco[novoID] = dadosProjeto;
+        localStorage.setItem('db_crc_sistema', JSON.stringify(banco));
+
+        alert(`PROJETO SALVO COM SUCESSO!\n\nID DO PROJETO: ${novoID}\n\nInforme este número para a Equipe Técnica.`);
+        
+        // Reseta para novo
+        irPara('tela-inicial');
+        location.reload(); // Recarrega para limpar memória visual
     }
 
-    // --- TÉCNICO: Carregar ---
-    function carregarArquivo(input) {
-        const file = input.files[0];
-        if (!file) return;
+    // --- TÉCNICO: Buscar por ID ---
+    function buscarProjetoPorID() {
+        const idBusca = document.getElementById('buscaIdInput').value;
+        if(!idBusca) return alert("Digite um ID.");
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                dadosProjeto = JSON.parse(e.target.result);
-                document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
-                document.getElementById('tec_display_itens_qtd').innerText = dadosProjeto.comercial.itens.length;
-                
-                document.getElementById('area-upload').style.display = 'none';
-                document.getElementById('info-projeto-carregado').style.display = 'block';
-                document.getElementById('area-tecnica-form').style.display = 'block';
+        const banco = JSON.parse(localStorage.getItem('db_crc_sistema')) || {};
+        const projetoEncontrado = banco[idBusca];
 
-                renderizarResumo();
-            } catch (err) {
-                alert("Erro ao ler arquivo.");
-            }
-        };
-        reader.readAsText(file);
+        if (projetoEncontrado) {
+            dadosProjeto = projetoEncontrado; // Carrega para memória
+            
+            // Preenche Display
+            document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
+            document.getElementById('tec_display_consultor').innerText = dadosProjeto.comercial.consultor || "---";
+            document.getElementById('tec_display_data').innerText = dadosProjeto.dataCriacao || "---";
+            document.getElementById('tec_display_itens_qtd').innerText = dadosProjeto.comercial.itens.length;
+
+            // Mostra elementos
+            document.getElementById('info-projeto-encontrado').style.display = 'block';
+            document.getElementById('area-tecnica-form').style.display = 'block';
+            
+            renderizarResumo();
+        } else {
+            alert("Projeto não encontrado! Verifique se o ID está correto ou se foi criado neste computador.");
+        }
     }
 
-    // --- TÉCNICO: Adicionar ou Editar ---
+    // --- TÉCNICO: Adicionar/Editar ---
     function adicionarItemTecnico() {
         const nome = document.getElementById('tec_equipamento').value;
         if(!nome) return alert("Digite o nome do equipamento.");
@@ -437,7 +460,7 @@
             dadosProjeto.tecnico.itens[editIndexTec] = itemObj;
             editIndexTec = null;
             const btn = document.getElementById('btn-add-tecnico');
-            btn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Item';
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> ADICIONAR ITEM TÉCNICO';
             btn.classList.remove('editing');
         } else {
             dadosProjeto.tecnico.itens.push(itemObj);
@@ -449,7 +472,7 @@
         renderizarResumo();
     }
 
-    // --- FUNÇÕES DE EDIÇÃO ---
+    // --- EDIÇÃO (LÁPIS) ---
     function editarItem(tipo, index) {
         if (tipo === 'com') {
             const item = dadosProjeto.comercial.itens[index];
@@ -471,7 +494,7 @@
 
             editIndexCom = index;
             const btn = document.getElementById('btn-add-comercial');
-            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Salvar Alteração';
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> SALVAR ALTERAÇÃO';
             btn.classList.add('editing');
             
             document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
@@ -485,7 +508,7 @@
 
             editIndexTec = index;
             const btn = document.getElementById('btn-add-tecnico');
-            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Salvar Alteração';
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> SALVAR ALTERAÇÃO';
             btn.classList.add('editing');
             
             document.getElementById('area-tecnica-form').scrollIntoView({ behavior: 'smooth' });
@@ -493,7 +516,7 @@
     }
 
     function removerItem(tipo, index) {
-        if(confirm("Deseja realmente remover este item?")) {
+        if(confirm("Remover este item?")) {
             if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
             if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
             renderizarResumo();
@@ -547,7 +570,7 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    // --- GERAÇÃO WORD ---
+    // --- GERAR WORD ---
     function gerarDocumentoCompleto() { gerarDocumentoWord(true); }
 
     function gerarDocumentoWord(completo) {
@@ -577,7 +600,7 @@
         const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <body style="font-family:Arial;">
-            <h2>RESUMO CRC</h2>
+            <h2>RESUMO CRC - ID: ${dadosProjeto.id || '---'}</h2>
             <h3>1. CLIENTE</h3>
             <p>Cliente: ${com.cliente} | CNPJ: ${com.cnpj} | Consultor: ${com.consultor}</p>
             <h3>2. COMERCIAL</h3>
@@ -602,9 +625,7 @@
         v = v.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
         i.value = v;
     }
-    function toggleParceira() {
-        document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
-    }
+    function toggleParceira() { document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none'; }
     function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
     function formatarDataBR(d) { return d ? d.split('-').reverse().join('/') : "---"; }
 </script>
