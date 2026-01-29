@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Sistema CRC - Comercial PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #333; --bg: #f0f2f5; --success: #28a745; --parceira-text: #555; }
+        :root { --primary: #333; --bg: #f0f2f5; --success: #28a745; --danger: #dc3545; --warning: #ffc107; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { display: flex; gap: 20px; width: 100%; max-width: 1100px; align-items: flex-start; }
+        .container { display: flex; gap: 20px; width: 100%; max-width: 1150px; align-items: flex-start; }
         .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex: 1; }
-        .resumo-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 340px; position: sticky; top: 20px; min-height: 200px; }
+        .resumo-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 360px; position: sticky; top: 20px; min-height: 200px; }
         
         h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; margin-top: 0; }
         h3 { font-size: 14px; color: #666; text-transform: uppercase; margin-top: 20px; border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; }
@@ -21,16 +22,22 @@
         .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-primary { background: var(--primary); color: white; width: 100%; }
         .btn-success { background: var(--success); color: white; width: 100%; margin: 20px 0 10px 0; font-size: 15px; }
-        .btn-success:hover { background: #218838; }
         .btn-secondary { background: #6c757d; color: white; width: 100%; margin-top: 10px; }
         
+        /* Estilo dos itens no resumo */
         #lista-resumo { list-style: none; padding: 0; margin-top: 15px; }
         .item-resumo { font-size: 13px; padding: 12px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .item-info b { color: #333; display: block; }
         .item-info span { color: #777; font-size: 11px; display: block; }
         
-        #secao-parceira { background: #fffcf5; border: 1px dashed #ccc; padding: 15px; border-radius: 8px; margin-top: 10px; display: none; }
+        .item-acoes { display: flex; gap: 8px; }
+        .btn-acao { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; font-size: 16px; }
+        .btn-edit { color: var(--warning); }
+        .btn-edit:hover { background: #fff9e6; }
+        .btn-delete { color: var(--danger); }
+        .btn-delete:hover { background: #fdeaea; }
         
+        #secao-parceira { background: #fffcf5; border: 1px dashed #ccc; padding: 15px; border-radius: 8px; margin-top: 10px; display: none; }
         .screen { display: none; }
         .screen.active { display: block; }
     </style>
@@ -48,7 +55,7 @@
             <h2>Dados do Cliente & Consultor</h2>
             <div class="form-group">
                 <label>Cliente/Projeto</label>
-                <input type="text" id="projeto" placeholder="Ex: Ailos / Expansão Norte">
+                <input type="text" id="projeto" placeholder="Ex: Ailos">
             </div>
             <div class="row">
                 <div class="form-group">
@@ -99,7 +106,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-success" onclick="adicionarPlano()">+ ADICIONAR PLANO AO ORÇAMENTO</button>
+            <button class="btn btn-success" id="btn-add-update" onclick="adicionarOuAtualizarPlano()">+ ADICIONAR PLANO AO ORÇAMENTO</button>
 
             <div style="border-top: 1px solid #eee; padding-top: 10px;">
                 <button class="btn btn-primary" onclick="gerar()">GERAR DOCUMENTO WORD</button>
@@ -122,6 +129,7 @@
 
 <script>
     let planosAdicionados = [];
+    let idEdicao = null; // Controla se estamos editando um item
 
     function show(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -143,38 +151,97 @@
         document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
     }
 
-    function adicionarPlano() {
+    function adicionarOuAtualizarPlano() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value);
         let nomePlano = select.options[select.selectedIndex].text.split(' - ')[0];
         const qtd = parseInt(document.getElementById('qtdPlano').value);
+        const servico = document.getElementById('servico').value;
+        const dataE = document.getElementById('dataEntrega').value;
         
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
-        const totalParceira = qtdParc * valParc;
 
         if (valorUnit === 0) return alert("Selecione um plano primeiro.");
 
-        // Se tiver parceira, altera o nome para exibição
-        const nomeExibicao = temParceira ? `${nomePlano} - Parceira` : nomePlano;
+        const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
+        const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
 
-        planosAdicionados.push({
-            nome: nomeExibicao,
+        const dadosItem = {
+            id: idEdicao !== null ? idEdicao : Date.now(),
+            nome: nomeFinal,
+            nomePuro: nomePlano, // Guardamos para a edição
             qtd: qtd,
             valorUnit: valorUnit,
-            totalItem: (valorUnit * qtd) + totalParceira
-        });
+            servico: servico,
+            dataEntrega: dataE,
+            temParceira: temParceira,
+            qtdParc: qtdParc,
+            valParc: valParc,
+            totalItem: totalItem
+        };
 
-        // Reset campos de item
-        select.value = "0";
+        if (idEdicao !== null) {
+            // Atualiza item existente
+            const index = planosAdicionados.findIndex(p => p.id === idEdicao);
+            planosAdicionados[index] = dadosItem;
+            idEdicao = null;
+            document.getElementById('btn-add-update').innerText = "+ ADICIONAR PLANO AO ORÇAMENTO";
+            document.getElementById('btn-add-update').style.backgroundColor = "var(--success)";
+        } else {
+            // Adiciona novo
+            planosAdicionados.push(dadosItem);
+        }
+
+        resetCamposItem();
+        atualizarResumo();
+    }
+
+    function resetCamposItem() {
+        document.getElementById('plano').value = "0";
         document.getElementById('qtdPlano').value = "1";
+        document.getElementById('servico').value = "Internet";
+        document.getElementById('dataEntrega').value = "";
         document.getElementById('parceiraCheck').value = "nao";
         document.getElementById('qtdParceira').value = "0";
         document.getElementById('valorParceira').value = "0";
         toggleParceira();
-        
+    }
+
+    function removerItem(id) {
+        planosAdicionados = planosAdicionados.filter(p => p.id !== id);
         atualizarResumo();
+    }
+
+    function editarItem(id) {
+        const item = planosAdicionados.find(p => p.id === id);
+        if (!item) return;
+
+        // Carrega valores de volta para o form
+        // Busca o valor no select pelo nome original
+        const select = document.getElementById('plano');
+        for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].text.includes(item.nomePuro)) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+
+        document.getElementById('qtdPlano').value = item.qtd;
+        document.getElementById('servico').value = item.servico;
+        document.getElementById('dataEntrega').value = item.dataEntrega;
+        document.getElementById('parceiraCheck').value = item.temParceira ? "sim" : "nao";
+        toggleParceira();
+        document.getElementById('qtdParceira').value = item.qtdParc;
+        document.getElementById('valorParceira').value = item.valParc;
+
+        idEdicao = id;
+        document.getElementById('btn-add-update').innerText = "ATUALIZAR ITEM SELECIONADO";
+        document.getElementById('btn-add-update').style.backgroundColor = "var(--warning)";
+        
+        // Rola a tela para o formulário
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function atualizarResumo() {
@@ -182,6 +249,12 @@
         lista.innerHTML = "";
         
         let totalGeral = 0;
+
+        if (planosAdicionados.length === 0) {
+            lista.innerHTML = `<li style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">Nenhum item adicionado.</li>`;
+            document.getElementById('valorTotalFinal').innerText = "R$ 0,00";
+            return;
+        }
 
         planosAdicionados.forEach((p) => {
             totalGeral += p.totalItem;
@@ -191,7 +264,11 @@
                         <b>${p.nome}</b>
                         <span>${p.qtd} un x R$ ${p.valorUnit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
-                    <div style="font-weight: bold;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                    <div class="item-acoes">
+                        <div style="font-weight: bold; margin-right: 10px;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        <button class="btn-acao btn-edit" onclick="editarItem(${p.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-acao btn-delete" onclick="removerItem(${p.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </li>`;
         });
 
@@ -200,24 +277,22 @@
 
     function gerar() {
         if (planosAdicionados.length === 0) return alert("Adicione pelo menos um plano.");
-        
         const projeto = document.getElementById('projeto').value || "CRC_Documento";
+        
         let itensWord = planosAdicionados.map(p => `
             <tr>
                 <td style="border: 1px solid #ccc; padding: 5px; font-family: Arial;">${p.nome}</td>
                 <td style="border: 1px solid #ccc; padding: 5px; font-family: Arial; text-align: center;">${p.qtd}</td>
                 <td style="border: 1px solid #ccc; padding: 5px; font-family: Arial; text-align: right;">R$ ${p.totalItem.toFixed(2)}</td>
-            </tr>
-        `).join('');
+            </tr>`).join('');
 
         const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
             <h2 style="border-bottom: 2px solid #000; font-family: Arial;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
             <p><b>Projeto:</b> ${projeto} | <b>Consultor:</b> ${document.getElementById('consultor').value}</p>
             <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
-                <tr style="background: #eee;"><td><b>Item / Plano</b></td><td style="text-align: center;"><b>Qtd</b></td><td style="text-align: right;"><b>Total</b></td></tr>
+                <tr style="background: #eee;"><td><b>Item / Plano</b></td><td style="text-align:center;"><b>Qtd</b></td><td style="text-align:right;"><b>Total</b></td></tr>
                 ${itensWord}
             </table>
             <h2 style="text-align: right; font-family: Arial; margin-top: 20px;">VALOR TOTAL: ${document.getElementById('valorTotalFinal').innerText}</h2>
