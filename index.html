@@ -20,7 +20,7 @@
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-success { background: var(--success); color: white; width: 100%; margin-top: 10px; font-size: 15px; }
+        .btn-success { background: var(--success); color: white; width: 100%; margin: 20px 0 10px 0; font-size: 15px; }
         .btn-success:hover { background: #218838; }
         .btn-secondary { background: #6c757d; color: white; width: 100%; margin-top: 10px; }
         
@@ -103,9 +103,10 @@
 
             <button class="btn btn-success" onclick="adicionarPlano()">+ ADICIONAR PLANO AO ORÇAMENTO</button>
 
-            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-            <button class="btn btn-primary" onclick="gerar()">FINALIZAR E GERAR WORD</button>
-            <button class="btn btn-secondary" onclick="show('menu')">CANCELAR</button>
+            <div style="border-top: 1px solid #eee; padding-top: 10px;">
+                <button class="btn btn-primary" onclick="gerar()">GERAR DOCUMENTO WORD</button>
+                <button class="btn btn-secondary" onclick="show('menu')">CANCELAR</button>
+            </div>
         </div>
     </div>
 
@@ -168,10 +169,12 @@
             totalItem: (valorUnit * qtd) + totalParceira
         });
 
-        // Reset campos de item
+        // Reset campos de item após adicionar
         select.value = "0";
         document.getElementById('qtdPlano').value = "1";
         document.getElementById('parceiraCheck').value = "nao";
+        document.getElementById('qtdParceira').value = "0";
+        document.getElementById('valorParceira').value = "0";
         toggleParceira();
         
         atualizarResumo();
@@ -189,10 +192,10 @@
                 <li class="item-resumo">
                     <div class="item-info">
                         <b>${p.nome} ${p.temParceira ? '<span class="tag-parceira">P</span>' : ''}</b>
-                        <span>${p.qtd} un x R$ ${p.valorUnit.toFixed(2)}</span>
-                        ${p.temParceira ? `<span class="info-parceira-item">+ Parceira: R$ ${p.valParc.toFixed(2)} (${p.qtdParc} pts)</span>` : ''}
+                        <span>${p.qtd} un x R$ ${p.valorUnit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        ${p.temParceira ? `<span class="info-parceira-item">+ Parceira: R$ ${p.valParc.toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${p.qtdParc} pts)</span>` : ''}
                     </div>
-                    <div style="font-weight: bold;">R$ ${p.totalItem.toFixed(2)}</div>
+                    <div style="font-weight: bold;">R$ ${p.totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                 </li>`;
         });
 
@@ -200,6 +203,8 @@
     }
 
     function gerar() {
+        if (planosAdicionados.length === 0) return alert("Adicione pelo menos um plano antes de gerar o documento.");
+        
         const projeto = document.getElementById('projeto').value || "CRC_Documento";
         let itensWord = planosAdicionados.map(p => `
             <tr>
@@ -211,6 +216,7 @@
 
         const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
             <h2 style="border-bottom: 2px solid #000; font-family: Arial;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
             <p><b>Projeto:</b> ${projeto} | <b>Consultor:</b> ${document.getElementById('consultor').value}</p>
