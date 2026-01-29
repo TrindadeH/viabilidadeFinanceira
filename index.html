@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema CRC - Comercial</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-primary { background: #333; color: white; }
+        .btn-secondary { background: #6c757d; color: white; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div id="menu">
+        <h2>Sistema CRC</h2>
+        <button class="btn btn-primary" onclick="show('form')">SETOR COMERCIAL</button>
+    </div>
+
+    <div id="form" style="display:none;">
+        <h2>Dados Comercial</h2>
+        <div class="form-group">
+            <label>Cliente</label>
+            <input type="text" id="cli">
+        </div>
+        <div class="form-group">
+            <label>CNPJ</label>
+            <input type="text" id="cnpj" placeholder="00.000.000/0000-00">
+        </div>
+        <div class="form-group">
+            <label>Plano</label>
+            <select id="pl" onchange="calc()">
+                <option value="0">Selecione...</option>
+                <option value="150">Plano Básico - R$ 150,00</option>
+                <option value="300">Plano Pro - R$ 300,00</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Total: <span id="tot">R$ 0,00</span></label>
+        </div>
+        <button class="btn btn-primary" onclick="gerar()">GERAR WORD ARIAL</button>
+        <button class="btn btn-secondary" onclick="show('menu')">VOLTAR</button>
+    </div>
+</div>
+
+<script>
+    function show(id) {
+        document.getElementById('menu').style.display = id === 'menu' ? 'block' : 'none';
+        document.getElementById('form').style.display = id === 'form' ? 'block' : 'none';
+    }
+
+    function calc() {
+        const v = document.getElementById('pl').value;
+        document.getElementById('tot').innerText = "R$ " + parseFloat(v).toFixed(2);
+    }
+
+    function gerar() {
+        const cliente = document.getElementById('cli').value || "Documento";
+        const total = document.getElementById('tot').innerText;
+        
+        const html = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
+        <body style="font-family: Arial, sans-serif;">
+            <h2 style="font-family: Arial;">RESUMO DE CUSTO OPERACIONAL</h2>
+            <p style="font-family: Arial;"><b>Cliente:</b> ${cliente}</p>
+            <p style="font-family: Arial;"><b>Valor Total:</b> ${total}</p>
+        </body></html>`;
+
+        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `CRC_${cliente}.doc`;
+        link.click();
+    }
+</script>
+</body>
+</html>
