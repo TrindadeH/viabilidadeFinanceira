@@ -5,55 +5,74 @@
     <title>Sistema CRC - Integrado</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #2980b9; --bg: #f4f6f8; --success: #27ae60; --danger: #c0392b; --warning: #f39c12; }
+        /* --- ESTILOS VISUAIS (Mantendo o padrão aprovado) --- */
+        :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; }
         
         body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         
         .container { display: flex; gap: 25px; width: 100%; max-width: 1200px; padding: 40px 20px; align-items: flex-start; justify-content: center; }
         
         /* CARDS */
-        .card { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; animation: fadeIn 0.3s ease; }
-        .resumo-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 380px; position: sticky; top: 20px; min-height: 200px; display: none; }
+        .card { background: white; padding: 35px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; animation: fadeIn 0.3s ease; }
+        .resumo-card { background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 350px; position: sticky; top: 20px; min-height: 200px; display: none; }
 
-        /* DASHBOARD */
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .menu-btn { cursor: pointer; background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; text-align: center; transition: 0.3s; flex: 1; }
-        .menu-btn:hover { border-color: var(--accent); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-
-        /* TABELA DE PROJETOS */
-        .table-container { margin-top: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: var(--secondary); color: white; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; color: #555; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .badge.com { background: #e3f2fd; color: #2196f3; }
-        .badge.tec { background: #e8f5e9; color: #4caf50; }
+        /* DASHBOARD INICIAL */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 50px; }
+        .menu-btn {
+            background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 50px 30px;
+            text-align: center; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .menu-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: var(--accent); }
+        .menu-btn i { font-size: 50px; color: var(--accent); margin-bottom: 20px; }
+        .menu-btn h3 { margin: 0; color: #333; font-size: 1.5rem; }
+        .menu-btn p { color: #777; margin-top: 10px; }
 
         /* FORMULÁRIOS */
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        .section-title { font-size: 13px; color: #777; text-transform: uppercase; border-left: 4px solid #333; padding-left: 10px; font-weight: bold; margin: 0; }
+        h1.app-title { text-align: center; color: var(--accent); margin-bottom: 10px; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 15px; color: #333; margin-top: 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
         
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .section-title { font-size: 14px; color: #666; text-transform: uppercase; border-left: 4px solid #333; padding-left: 10px; margin: 0; font-weight: bold; }
+
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 12px; color: #555; text-transform: uppercase; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
-        input[readonly] { background-color: #f9f9f9; color: #777; border-color: #eee; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 12px; color: #555; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; background: #fff; }
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
         /* BOTÕES */
-        .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-add { background: var(--success); color: white; width: auto; padding: 8px 20px; font-size: 12px; }
-        .btn-save { background: var(--accent); color: white; margin-top: 20px; }
-        .btn-generate { background: #333; color: white; margin-top: 20px; }
-        .btn-back { background: #95a5a6; color: white; margin-top: 10px; }
-        .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; color: #777; }
-        .btn-icon:hover { color: var(--accent); }
-
-        /* RESUMO E PARCEIRA */
-        #lista-resumo { list-style: none; padding: 0; margin-top: 15px; border-top: 1px solid #eee; }
-        .item-resumo { padding: 12px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        #secao-parceira { background: #fdfdfd; border: 1px dashed #ccc; padding: 15px; margin-top: 10px; display: none; }
+        .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
+        .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .btn-add-inline:hover { background-color: #218838; }
         
+        .btn-generate { background: #333; color: white; margin-top: 20px; padding: 15px; font-size: 14px; }
+        .btn-generate:hover { background: #000; }
+        
+        .btn-save-tec { background: var(--warning); color: #333; margin-top: 20px; padding: 15px; font-size: 14px; }
+        .btn-save-tec:hover { background: #ffca2c; }
+
+        .btn-back { background: #6c757d; color: white; margin-top: 10px; }
+        .btn-back:hover { background: #5a6268; }
+
+        /* RESUMO LATERAL */
+        #lista-resumo { list-style: none; padding: 0; margin-top: 20px; border-top: 1px solid #eee; }
+        .item-resumo { padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .item-info b { color: #333; font-size: 14px; display: block; }
+        .item-info span { color: #777; font-size: 11px; }
+        
+        .valor-total-container { margin-top: 20px; }
+        .lbl-total { font-size: 11px; font-weight: bold; color: #777; text-transform: uppercase; display: block; }
+        .val-total { font-size: 28px; font-weight: bold; color: var(--success); }
+
+        .acoes-item { display: flex; gap: 5px; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: #999; font-size: 14px; padding: 5px; }
+        .btn-icon:hover { color: var(--primary); }
+        .btn-icon.del:hover { color: var(--danger); }
+
+        #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
+        
+        /* DISPLAY CONTROL */
         .screen { display: none; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -63,100 +82,118 @@
 
 <div class="container" id="main-container">
     
-    <div id="tela-inicial" class="screen active" style="width: 100%; max-width: 900px;">
-        <div class="dashboard-header">
-            <h1 style="margin: 0; color: var(--primary);">Sistema CRC</h1>
-            <button class="btn-add" style="background: var(--primary);" onclick="novoOrcamento()">
-                <i class="fa-solid fa-plus"></i> Novo Orçamento
-            </button>
-        </div>
-
-        <div class="table-container">
-            <h3 style="margin: 0 0 15px 0; color: #555;">Projetos Salvos</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Status</th>
-                        <th style="text-align: right;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-projetos">
-                    </tbody>
-            </table>
-            <p id="msg-vazio" style="text-align: center; color: #999; margin-top: 20px; font-size: 13px;">Nenhum projeto encontrado.</p>
+    <div id="tela-inicial" class="screen active" style="width: 100%; max-width: 800px;">
+        <h1 class="app-title">Sistema CRC</h1>
+        <p style="text-align: center; color: #777;">Selecione o módulo para iniciar</p>
+        
+        <div class="dashboard-grid">
+            <div class="menu-btn" onclick="irPara('tela-comercial')">
+                <i class="fa-solid fa-briefcase"></i>
+                <h3>Comercial</h3>
+                <p>Criar orçamentos e propostas</p>
+            </div>
+            <div class="menu-btn" onclick="irPara('tela-tecnica')">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                <h3>Equipe Técnica</h3>
+                <p>Gestão de infraestrutura</p>
+            </div>
         </div>
     </div>
 
     <div id="tela-comercial" class="card screen">
-        <h2 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">
-            <i class="fa-solid fa-briefcase"></i> Comercial
-        </h2>
-        
-        <div class="form-group"><label>Cliente / Projeto</label><input type="text" id="com_cliente"></div>
+        <h2>Dados Comercial</h2>
+
+        <div class="form-group">
+            <label>Cliente/Projeto</label>
+            <input type="text" id="projeto" placeholder="Ex: Ailos">
+        </div>
         <div class="row">
-            <div class="form-group"><label>CNPJ</label><input type="text" id="com_cnpj" oninput="mascaraCNPJ(this)" maxlength="18"></div>
-            <div class="form-group"><label>Consultor</label><input type="text" id="com_consultor"></div>
+            <div class="form-group">
+                <label>CNPJ</label>
+                <input type="text" id="cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="mascaraCNPJ(this)">
+            </div>
+            <div class="form-group"><label>Consultor</label><input type="text" id="consultor"></div>
         </div>
 
         <div class="section-header">
-            <h3 class="section-title">| Configuração de Planos</h3>
-            <button class="btn-add" onclick="addComercial()"><i class="fa-solid fa-plus"></i> Adicionar</button>
+            <h3 class="section-title">| CONFIGURAÇÃO DE PLANOS</h3>
+            <button class="btn-add-inline" id="btn-add-update" onclick="adicionarPlanoComercial()">
+                <i class="fa-solid fa-plus"></i> Adicionar Plano
+            </button>
         </div>
-
+        
         <div class="form-group">
             <label>Plano</label>
-            <select id="com_plano">
+            <select id="plano">
                 <option value="0">Selecione...</option>
                 <option value="150">Plano Smart - R$ 150,00</option>
                 <option value="300">Plano Business - R$ 300,00</option>
+                <option value="500">Plano Enterprise - R$ 500,00</option>
             </select>
         </div>
+        
         <div class="row">
-            <div class="form-group"><label>Qtd</label><input type="number" id="com_qtd" value="1"></div>
-            <div class="form-group"><label>Serviço</label><select id="com_servico"><option>Internet</option><option>Voz</option></select></div>
+            <div class="form-group"><label>Quantidade de Planos</label><input type="number" id="qtdPlano" value="1" min="1"></div>
+            <div class="form-group">
+                <label>Tipo de Serviço</label>
+                <select id="servico">
+                    <option value="Internet">Internet</option>
+                    <option value="Voz">Voz</option>
+                    <option value="Dados">Dados</option>
+                </select>
+            </div>
         </div>
-        <div class="form-group"><label>Entrega</label><input type="date" id="com_data"></div>
+        
+        <div class="form-group">
+            <label>Data da Entrega</label>
+            <input type="date" id="dataEntrega">
+        </div>
 
-        <div class="form-group"><label>Parceira?</label>
-            <select id="checkParceira" onchange="toggleParceira()"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        <div class="form-group">
+            <label>Parceira?</label>
+            <select id="parceiraCheck" onchange="toggleParceira()">
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+            </select>
         </div>
+
         <div id="secao-parceira">
             <div class="row">
-                <div class="form-group"><label>Pontos</label><input type="number" id="com_pts" value="0"></div>
-                <div class="form-group"><label>Valor Ponto</label><input type="number" id="com_valPts" value="0"></div>
+                <div class="form-group"><label>Qtd. Pontos Parceira</label><input type="number" id="qtdParceira" value="0"></div>
+                <div class="form-group"><label>Valor por Ponto (R$)</label><input type="number" id="valorParceira" value="0"></div>
             </div>
         </div>
 
-        <button class="btn btn-save" onclick="salvarProjeto('comercial')"><i class="fa-solid fa-save"></i> SALVAR ORÇAMENTO</button>
-        <button class="btn btn-back" onclick="irPara('tela-inicial')">Voltar</button>
+        <button class="btn btn-generate" onclick="salvarComercialEGerar()">SALVAR E GERAR DOCUMENTO</button>
+        <button class="btn btn-back" onclick="irPara('tela-inicial')">VOLTAR AO MENU</button>
     </div>
 
     <div id="tela-tecnica" class="card screen">
-        <h2 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">
-            <i class="fa-solid fa-screwdriver-wrench"></i> Equipe Técnica
-        </h2>
-
-        <div style="background: #fffbe6; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffe58f;">
-            <p style="margin:0; font-size:13px; color:#555;"><b>Cliente:</b> <span id="tec_display_cliente"></span></p>
-            <p style="margin:5px 0 0 0; font-size:13px; color:#555;"><b>Itens Comerciais:</b> <span id="tec_display_itens_qtd">0</span> item(s)</p>
+        <h2><i class="fa-solid fa-screwdriver-wrench"></i> Escopo Técnico</h2>
+        
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+            <p style="margin: 0; font-size: 13px; color: #555;">
+                <i class="fa-solid fa-info-circle"></i> 
+                Os dados comerciais já estão carregados. Adicione os equipamentos abaixo para complementar o orçamento.
+            </p>
         </div>
 
         <div class="section-header">
-            <h3 class="section-title">| Equipamentos & Mão de Obra</h3>
-            <button class="btn-add" onclick="addTecnico()"><i class="fa-solid fa-plus"></i> Adicionar ao Resumo</button>
+            <h3 class="section-title">| EQUIPAMENTOS E MÃO DE OBRA</h3>
+            <button class="btn-add-inline" onclick="adicionarItemTecnico()">
+                <i class="fa-solid fa-plus"></i> Adicionar Item
+            </button>
         </div>
 
         <div class="form-group">
             <label>Equipamento / Descrição</label>
-            <input type="text" id="tec_equip" placeholder="Ex: Roteador, Cabo, Mão de obra...">
+            <input type="text" id="tec_equipamento" placeholder="Ex: Roteador, Cabo, Instalação...">
         </div>
-        
+
         <div class="row">
             <div class="form-group">
                 <label>Quantidade</label>
-                <input type="number" id="tec_qtd" value="1">
+                <input type="number" id="tec_qtd" value="1" min="1">
             </div>
             <div class="form-group">
                 <label>Valor Unitário (R$)</label>
@@ -174,338 +211,335 @@
             </select>
         </div>
 
-        <button class="btn btn-save" style="background: var(--warning); color: #333;" onclick="salvarProjeto('tecnico')">
-            <i class="fa-solid fa-check"></i> SALVAR DADOS TÉCNICOS
-        </button>
-
-        <button class="btn btn-generate" onclick="gerarDocumentoFinal()">
+        <button class="btn btn-save-tec" onclick="gerarDocumentoCompleto()">
             <i class="fa-solid fa-file-word"></i> GERAR DOCUMENTO COMPLETO
         </button>
-        
-        <button class="btn btn-back" onclick="irPara('tela-inicial')">Voltar</button>
+        <button class="btn btn-back" onclick="irPara('tela-inicial')">VOLTAR AO MENU</button>
     </div>
 
     <div id="resumo-container" class="resumo-card">
-        <h3 style="margin:0; font-size:14px; border-bottom:1px solid #eee; padding-bottom:10px;">Resumo do Orçamento</h3>
+        <h2 style="font-size: 16px; border: none; margin-bottom: 0;">Resumo do Orçamento</h2>
+        <div style="border-bottom: 1px solid #eee; margin-bottom: 10px;"></div>
         
-        <div id="resumo-comercial-block">
-            <h4 style="font-size: 11px; color: #999; text-transform: uppercase; margin: 15px 0 5px 0;">Itens Comerciais</h4>
-            <ul id="lista-com" style="list-style:none; padding:0;"></ul>
-        </div>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <h4 style="font-size: 11px; color: #999; margin: 10px 0 5px 0;">COMERCIAL</h4>
+            <ul id="lista-resumo-com" style="list-style: none; padding: 0;">
+                <li style="color: #999; font-size: 12px; text-align: center;">Nenhum plano.</li>
+            </ul>
 
-        <div id="resumo-tecnico-block" style="display:none;">
-            <h4 style="font-size: 11px; color: #999; text-transform: uppercase; margin: 15px 0 5px 0;">Itens Técnicos</h4>
-            <ul id="lista-tec" style="list-style:none; padding:0;"></ul>
+            <div id="bloco-resumo-tec" style="display: none;">
+                <h4 style="font-size: 11px; color: #999; margin: 15px 0 5px 0; border-top: 1px dashed #eee; padding-top: 10px;">TÉCNICO</h4>
+                <ul id="lista-resumo-tec" style="list-style: none; padding: 0;">
+                    <li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>
+                </ul>
+            </div>
         </div>
-
-        <div style="text-align:right; margin-top:20px; border-top: 2px dashed #ddd; padding-top: 10px;">
-            <span style="font-size:11px; color:#777;">TOTAL GERAL</span>
-            <div id="total-geral" style="font-size:24px; font-weight:bold; color:var(--success);">R$ 0,00</div>
+        
+        <div class="valor-total-container">
+            <span class="lbl-total">VALOR TOTAL ESTIMADO</span>
+            <div id="valorTotalFinal" class="val-total">R$ 0,00</div>
         </div>
     </div>
-
 </div>
 
 <script>
-    // --- ESTADO GLOBAL ---
-    let projetoAtual = {
-        id: null,
-        cliente: '', cnpj: '', consultor: '',
-        itensComercial: [],
-        itensTecnico: [],
-        status: 'Aberto' // 'Comercial', 'Tecnico'
+    // --- ESTADO DA APLICAÇÃO ---
+    // Armazena dados na memória enquanto a página estiver aberta
+    let dadosProjeto = {
+        comercial: {
+            cliente: '', cnpj: '', consultor: '',
+            itens: []
+        },
+        tecnico: {
+            itens: []
+        }
     };
 
-    // --- INICIALIZAÇÃO ---
-    window.onload = listarProjetos;
-
+    // --- NAVEGAÇÃO ---
     function irPara(telaId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(telaId).classList.add('active');
 
         const resumo = document.getElementById('resumo-container');
         const container = document.getElementById('main-container');
+        const blocoTec = document.getElementById('bloco-resumo-tec');
 
+        // Configuração do Layout dependendo da tela
         if (telaId === 'tela-inicial') {
             resumo.style.display = 'none';
-            container.style.maxWidth = '900px';
-            listarProjetos();
+            container.style.maxWidth = '800px';
         } else {
             resumo.style.display = 'block';
             container.style.maxWidth = '1200px';
             renderizarResumo();
-            
-            // Controle de visibilidade das listas no resumo
-            if(telaId === 'tela-tecnica') {
-                document.getElementById('resumo-tecnico-block').style.display = 'block';
-            } else {
-                document.getElementById('resumo-tecnico-block').style.display = 'none';
-            }
         }
-    }
 
-    // --- COMERCIAL ---
-    function novoOrcamento() {
-        projetoAtual = { id: Date.now(), cliente: '', cnpj: '', consultor: '', itensComercial: [], itensTecnico: [], status: 'Aberto' };
-        limparCamposComercial();
-        irPara('tela-comercial');
-    }
-
-    function addComercial() {
-        const sel = document.getElementById('com_plano');
-        const valUnit = parseFloat(sel.value) || 0;
-        if(valUnit === 0) return alert("Selecione um plano");
-
-        const nome = sel.options[sel.selectedIndex].text.split(' - ')[0];
-        const qtd = parseInt(document.getElementById('com_qtd').value) || 1;
-        
-        // Parceira
-        const temP = document.getElementById('checkParceira').value === 'sim';
-        const qtdP = parseInt(document.getElementById('com_pts').value) || 0;
-        const valP = parseFloat(document.getElementById('com_valPts').value) || 0;
-
-        const total = (valUnit * qtd) + (qtdP * valP);
-        const nomeFinal = temP ? `${nome} - Parceira` : nome;
-
-        projetoAtual.itensComercial.push({
-            id: Date.now(),
-            nome: nomeFinal,
-            qtd: qtd,
-            valor: total,
-            dataEntrega: document.getElementById('com_data').value
-        });
-
-        renderizarResumo();
-        
-        // Reset campos
-        sel.value = 0;
-        document.getElementById('com_qtd').value = 1;
-        document.getElementById('checkParceira').value = 'nao';
-        toggleParceira();
-    }
-
-    // --- TÉCNICO ---
-    function abrirTecnico(id) {
-        const db = JSON.parse(localStorage.getItem('crc_db')) || [];
-        const proj = db.find(p => p.id === id);
-        if(!proj) return;
-
-        projetoAtual = proj;
-        
-        // Preenche header de leitura
-        document.getElementById('tec_display_cliente').innerText = projetoAtual.cliente;
-        document.getElementById('tec_display_itens_qtd').innerText = projetoAtual.itensComercial.length;
-
-        irPara('tela-tecnica');
-    }
-
-    function addTecnico() {
-        const equip = document.getElementById('tec_equip').value;
-        const qtd = parseInt(document.getElementById('tec_qtd').value) || 1;
-        const valor = parseFloat(document.getElementById('tec_valor').value) || 0;
-        const tipo = document.getElementById('tec_tipo').value;
-
-        if(!equip) return alert("Digite o nome do equipamento.");
-
-        projetoAtual.itensTecnico.push({
-            id: Date.now(),
-            nome: equip,
-            qtd: qtd,
-            valor: valor * qtd, // Valor total do item
-            unitario: valor,
-            tipo: tipo
-        });
-
-        renderizarResumo();
-        
-        // Reset
-        document.getElementById('tec_equip').value = "";
-        document.getElementById('tec_qtd').value = 1;
-        document.getElementById('tec_valor').value = 0;
-    }
-
-    // --- GERAL ---
-    function renderizarResumo() {
-        // Comercial
-        const ulCom = document.getElementById('lista-com');
-        ulCom.innerHTML = "";
-        let total = 0;
-
-        projetoAtual.itensComercial.forEach((i, idx) => {
-            total += i.valor;
-            ulCom.innerHTML += `
-                <li class="item-resumo">
-                    <div><b>${i.nome}</b><span>${i.qtd}x (Comercial)</span></div>
-                    <div style="font-weight:bold;">R$ ${i.valor.toFixed(2)} 
-                    <i class="fa-solid fa-trash" style="cursor:pointer; color:#c0392b; margin-left:5px;" onclick="delItem('com', ${idx})"></i></div>
-                </li>`;
-        });
-
-        // Técnico
-        const ulTec = document.getElementById('lista-tec');
-        ulTec.innerHTML = "";
-        
-        projetoAtual.itensTecnico.forEach((i, idx) => {
-            total += i.valor;
-            ulTec.innerHTML += `
-                <li class="item-resumo">
-                    <div><b>${i.nome}</b><span style="color:#2980b9;">${i.tipo} | ${i.qtd}x</span></div>
-                    <div style="font-weight:bold;">R$ ${i.valor.toFixed(2)}
-                    <i class="fa-solid fa-trash" style="cursor:pointer; color:#c0392b; margin-left:5px;" onclick="delItem('tec', ${idx})"></i></div>
-                </li>`;
-        });
-
-        document.getElementById('total-geral').innerText = "R$ " + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-    }
-
-    function delItem(tipo, idx) {
-        if(tipo === 'com') projetoAtual.itensComercial.splice(idx, 1);
-        if(tipo === 'tec') projetoAtual.itensTecnico.splice(idx, 1);
-        renderizarResumo();
-    }
-
-    function salvarProjeto(origem) {
-        if(origem === 'comercial') {
-            projetoAtual.cliente = document.getElementById('com_cliente').value;
-            projetoAtual.cnpj = document.getElementById('com_cnpj').value;
-            projetoAtual.consultor = document.getElementById('com_consultor').value;
-            projetoAtual.status = 'Aguardando Técnico';
+        // Se for tela técnica, mostra a lista técnica no resumo
+        if (telaId === 'tela-tecnica') {
+            blocoTec.style.display = 'block';
         } else {
-            projetoAtual.status = 'Finalizado';
+            blocoTec.style.display = 'none';
         }
-
-        // Salva no LocalStorage
-        let db = JSON.parse(localStorage.getItem('crc_db')) || [];
-        db = db.filter(p => p.id !== projetoAtual.id); // Remove versão antiga
-        db.push(projetoAtual);
-        localStorage.setItem('crc_db', JSON.stringify(db));
-        
-        alert("Salvo com sucesso!");
-        irPara('tela-inicial');
-    }
-
-    function listarProjetos() {
-        const db = JSON.parse(localStorage.getItem('crc_db')) || [];
-        const tbody = document.getElementById('tabela-projetos');
-        tbody.innerHTML = "";
-
-        if(db.length === 0) {
-            document.getElementById('msg-vazio').style.display = 'block';
-            return;
-        }
-        document.getElementById('msg-vazio').style.display = 'none';
-
-        db.sort((a,b) => b.id - a.id).forEach(p => {
-            const badgeClass = p.status === 'Finalizado' ? 'tec' : 'com';
-            tbody.innerHTML += `
-                <tr>
-                    <td>#${p.id.toString().slice(-4)}</td>
-                    <td><b>${p.cliente || 'Sem Nome'}</b></td>
-                    <td><span class="badge ${badgeClass}">${p.status}</span></td>
-                    <td style="text-align:right;">
-                        <button class="btn-icon" title="Editar Comercial" onclick="abrirComercial(${p.id})"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-icon" title="Preencher Técnico" onclick="abrirTecnico(${p.id})"><i class="fa-solid fa-tools"></i></button>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    function abrirComercial(id) {
-        const db = JSON.parse(localStorage.getItem('crc_db')) || [];
-        const proj = db.find(p => p.id === id);
-        if(!proj) return;
-        projetoAtual = proj;
-        
-        document.getElementById('com_cliente').value = proj.cliente;
-        document.getElementById('com_cnpj').value = proj.cnpj;
-        document.getElementById('com_consultor').value = proj.consultor;
-        irPara('tela-comercial');
     }
 
     // --- UTILITÁRIOS ---
     function mascaraCNPJ(i) {
-        let v = i.value.replace(/\D/g,"").substring(0,14);
-        v = v.replace(/^(\d{2})(\d)/,"$1.$2");
-        v = v.replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3");
-        v = v.replace(/\.(\d{3})(\d)/,".$1/$2");
-        v = v.replace(/(\d{4})(\d)/,"$1-$2");
+        let v = i.value.replace(/\D/g, "").substring(0, 14);
+        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+        v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+        v = v.replace(/(\d{4})(\d)/, "$1-$2");
         i.value = v;
     }
+
     function toggleParceira() {
-        const v = document.getElementById('checkParceira').value;
-        document.getElementById('secao-parceira').style.display = v === 'sim' ? 'block' : 'none';
-    }
-    function limparCamposComercial() {
-        document.getElementById('com_cliente').value = "";
-        document.getElementById('com_cnpj').value = "";
-        document.getElementById('com_consultor').value = "";
-        document.getElementById('com_plano').value = 0;
-        document.getElementById('com_qtd').value = 1;
+        const display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
+        document.getElementById('secao-parceira').style.display = display;
     }
 
-    // --- GERAR DOCUMENTO FINAL (MERGE) ---
-    function gerarDocumentoFinal() {
-        const p = projetoAtual;
-        const totalCom = p.itensComercial.reduce((acc, i) => acc + i.valor, 0);
-        const totalTec = p.itensTecnico.reduce((acc, i) => acc + i.valor, 0);
-        const totalGeral = totalCom + totalTec;
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
 
-        // Tabela Comercial
-        const linhasCom = p.itensComercial.map(i => `
+    function formatarDataBR(dataISO) {
+        if (!dataISO) return "Não informada";
+        const [ano, mes, dia] = dataISO.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    // --- FUNÇÕES COMERCIAIS ---
+    function adicionarPlanoComercial() {
+        const select = document.getElementById('plano');
+        const valorUnit = parseFloat(select.value) || 0;
+        
+        if (valorUnit === 0) return alert("Selecione um plano válido.");
+
+        let nomePlano = select.options[select.selectedIndex].text.split(' - ')[0];
+        const qtd = parseInt(document.getElementById('qtdPlano').value) || 1;
+        const servico = document.getElementById('servico').value;
+        const dataE = document.getElementById('dataEntrega').value;
+        
+        // Parceira
+        const temParceira = document.getElementById('parceiraCheck').value === 'sim';
+        const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
+        const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
+
+        const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
+        const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
+
+        // Adiciona ao array global
+        dadosProjeto.comercial.itens.push({
+            id: Date.now(),
+            nome: nomeFinal,
+            qtd: qtd,
+            valorUnit: valorUnit,
+            servico: servico, // Guardando o serviço
+            dataEntrega: dataE, // Guardando a data
+            total: totalItem
+        });
+
+        // Limpa campos
+        select.value = "0";
+        document.getElementById('qtdPlano').value = "1";
+        document.getElementById('parceiraCheck').value = "nao";
+        toggleParceira();
+        
+        renderizarResumo();
+    }
+
+    function salvarComercialEGerar() {
+        if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de gerar.");
+
+        // Salva dados do cabeçalho na memória
+        dadosProjeto.comercial.cliente = document.getElementById('projeto').value || "Cliente";
+        dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
+        dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
+
+        // Gera o Word (Função unificada no final)
+        gerarDocumentoWord(false); // false = apenas comercial
+    }
+
+    // --- FUNÇÕES TÉCNICAS ---
+    function adicionarItemTecnico() {
+        const nome = document.getElementById('tec_equipamento').value;
+        if(!nome) return alert("Digite o nome do equipamento.");
+
+        const qtd = parseInt(document.getElementById('tec_qtd').value) || 1;
+        const valorUnit = parseFloat(document.getElementById('tec_valor').value) || 0;
+        const tipo = document.getElementById('tec_tipo').value;
+        
+        const totalItem = qtd * valorUnit;
+
+        dadosProjeto.tecnico.itens.push({
+            id: Date.now(),
+            nome: nome,
+            qtd: qtd,
+            valorUnit: valorUnit,
+            tipo: tipo,
+            total: totalItem
+        });
+
+        // Limpa campos
+        document.getElementById('tec_equipamento').value = "";
+        document.getElementById('tec_qtd').value = "1";
+        document.getElementById('tec_valor').value = "0";
+
+        renderizarResumo();
+    }
+
+    function gerarDocumentoCompleto() {
+        // Gera o word com tudo (true)
+        gerarDocumentoWord(true);
+    }
+
+    // --- RESUMO E RENDERIZAÇÃO ---
+    function renderizarResumo() {
+        const listaCom = document.getElementById('lista-resumo-com');
+        const listaTec = document.getElementById('lista-resumo-tec');
+        const totalEl = document.getElementById('valorTotalFinal');
+        
+        let totalGeral = 0;
+
+        // Renderiza Comercial
+        listaCom.innerHTML = "";
+        if (dadosProjeto.comercial.itens.length > 0) {
+            dadosProjeto.comercial.itens.forEach((item, index) => {
+                totalGeral += item.total;
+                listaCom.innerHTML += `
+                    <li class="item-resumo">
+                        <div class="item-info">
+                            <b>${item.nome}</b>
+                            <span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span>
+                        </div>
+                        <div class="acoes-item">
+                            <span style="font-weight:bold; font-size:13px; margin-right:5px;">${formatarMoeda(item.total)}</span>
+                            <button class="btn-icon del" onclick="removerItem('com', ${index})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </li>`;
+            });
+        } else {
+            listaCom.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum plano.</li>';
+        }
+
+        // Renderiza Técnico
+        listaTec.innerHTML = "";
+        if (dadosProjeto.tecnico.itens.length > 0) {
+            dadosProjeto.tecnico.itens.forEach((item, index) => {
+                totalGeral += item.total;
+                listaTec.innerHTML += `
+                    <li class="item-resumo">
+                        <div class="item-info">
+                            <b>${item.nome}</b>
+                            <span>${item.tipo} | ${item.qtd}x ${formatarMoeda(item.valorUnit)}</span>
+                        </div>
+                        <div class="acoes-item">
+                            <span style="font-weight:bold; font-size:13px; margin-right:5px;">${formatarMoeda(item.total)}</span>
+                            <button class="btn-icon del" onclick="removerItem('tec', ${index})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </li>`;
+            });
+        } else {
+            listaTec.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>';
+        }
+
+        totalEl.innerText = formatarMoeda(totalGeral);
+    }
+
+    function removerItem(tipo, index) {
+        if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
+        if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
+        renderizarResumo();
+    }
+
+    // --- GERAÇÃO DO WORD (O CORAÇÃO DO SISTEMA) ---
+    function gerarDocumentoWord(completo) {
+        const com = dadosProjeto.comercial;
+        const tec = dadosProjeto.tecnico;
+        
+        // Se os dados do cabeçalho estiverem vazios (caso esteja vindo da tela técnica), tenta pegar do DOM
+        if(!com.cliente) {
+             // Caso raro, mas previne erro
+             com.cliente = document.getElementById('projeto').value || "Cliente";
+             com.cnpj = document.getElementById('cnpj').value;
+             com.consultor = document.getElementById('consultor').value;
+        }
+
+        const hoje = new Date().toLocaleDateString('pt-BR');
+        
+        // Pega data do primeiro item comercial ou vazio
+        const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
+        const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
+
+        // Totais
+        const totalComercial = com.itens.reduce((acc, i) => acc + i.total, 0);
+        const totalTecnico = tec.itens.reduce((acc, i) => acc + i.total, 0);
+        const totalGeral = totalComercial + totalTecnico;
+
+        // Monta Linhas HTML
+        const linhasComercial = com.itens.map(i => `
             <tr>
                 <td style="padding:5px;">${i.nome}</td>
                 <td align="center">${i.qtd}</td>
-                <td align="right">R$ ${i.valor.toFixed(2)}</td>
+                <td align="right">${formatarMoeda(i.total)}</td>
             </tr>`).join('');
 
-        // Tabela Técnica
-        const linhasTec = p.itensTecnico.length > 0 ? p.itensTecnico.map(i => `
+        const linhasTecnico = tec.itens.map(i => `
             <tr>
-                <td style="padding:5px;">${i.nome} <span style="font-size:10px; color:#666;">(${i.tipo})</span></td>
+                <td style="padding:5px;">${i.nome} <br><span style="font-size:10px; color:#555;">(Equipe: ${i.tipo})</span></td>
                 <td align="center">${i.qtd}</td>
-                <td align="right">R$ ${i.unitario.toFixed(2)}</td>
-                <td align="right">R$ ${i.valor.toFixed(2)}</td>
-            </tr>`).join('') : '<tr><td colspan="4" align="center">Nenhum item técnico adicionado.</td></tr>';
+                <td align="right">${formatarMoeda(i.total)}</td>
+            </tr>`).join('');
+
+        // Se for completo, adiciona a tabela técnica, senão deixa vazio
+        const blocoTecnicoHTML = completo ? `
+            <h3 style="color:#000;">3. ESCOPO TÉCNICO</h3>
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse:collapse; font-family:Arial;">
+                <tr style="background:#eee;"><td><b>Equipamento / Mão de Obra</b></td><td width="50" align="center"><b>Qtd</b></td><td width="100" align="right"><b>Total</b></td></tr>
+                ${linhasTecnico.length > 0 ? linhasTecnico : '<tr><td colspan="3" align="center">Nenhum item técnico.</td></tr>'}
+                <tr><td colspan="2" align="right"><b>Subtotal Técnico:</b></td><td align="right"><b>${formatarMoeda(totalTecnico)}</b></td></tr>
+            </table>
+        ` : '';
 
         const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
-            <h2 style="border-bottom: 2px solid #333;">DOCUMENTO CRC COMPLETO</h2>
+            
+            <h2 style="border-bottom: 2px solid #333;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
+            <p>Data de geração: ${hoje}</p>
             
             <h3>1. DADOS DO CLIENTE</h3>
-            <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse:collapse; font-family:Arial;">
-                <tr><td width="30%" bgcolor="#f2f2f2"><b>Cliente</b></td><td>${p.cliente}</td></tr>
-                <tr><td bgcolor="#f2f2f2"><b>CNPJ</b></td><td>${p.cnpj}</td></tr>
-                <tr><td bgcolor="#f2f2f2"><b>Consultor</b></td><td>${p.consultor}</td></tr>
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial;">
+                <tr><td width="30%" bgcolor="#f2f2f2"><b>CNPJ</b></td><td>${com.cnpj}</td></tr>
+                <tr><td bgcolor="#f2f2f2"><b>Cliente</b></td><td>${com.cliente}</td></tr>
+                <tr><td bgcolor="#f2f2f2"><b>Consultor</b></td><td>${com.consultor}</td></tr>
+                <tr><td bgcolor="#f2f2f2"><b>Tipo de Serviço</b></td><td>${servicoRef}</td></tr>
+                <tr><td bgcolor="#f2f2f2"><b>Data de Entrega</b></td><td>${dataRef}</td></tr>
             </table>
 
-            <h3>2. ESCOPO COMERCIAL</h3>
-            <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse:collapse; font-family:Arial;">
-                <tr bgcolor="#333" style="color:white;"><td><b>Item</b></td><td><b>Qtd</b></td><td><b>Total</b></td></tr>
-                ${linhasCom}
-                <tr><td colspan="2" align="right"><b>Subtotal Comercial:</b></td><td><b>R$ ${totalCom.toFixed(2)}</b></td></tr>
+            <h3>2. DADOS COMERCIAIS</h3>
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial;">
+                <tr style="background:#eee;"><td><b>Plano / Item</b></td><td width="50" align="center"><b>Qtd</b></td><td width="100" align="right"><b>Total</b></td></tr>
+                ${linhasComercial}
+                <tr><td colspan="2" align="right"><b>Subtotal Comercial:</b></td><td align="right"><b>${formatarMoeda(totalComercial)}</b></td></tr>
             </table>
 
-            <h3>3. ESCOPO TÉCNICO (Equipamentos & Mão de Obra)</h3>
-            <table border="1" cellspacing="0" cellpadding="5" width="100%" style="border-collapse:collapse; font-family:Arial;">
-                <tr bgcolor="#333" style="color:white;"><td><b>Equipamento</b></td><td><b>Qtd</b></td><td><b>Unit.</b></td><td><b>Total</b></td></tr>
-                ${linhasTec}
-                <tr><td colspan="3" align="right"><b>Subtotal Técnico:</b></td><td><b>R$ ${totalTec.toFixed(2)}</b></td></tr>
-            </table>
-
+            ${blocoTecnicoHTML}
+            
             <br>
-            <div style="text-align:right; border-top:2px solid #000; padding-top:10px;">
-                <span style="font-size:18px; font-weight:bold;">VALOR TOTAL DO PROJETO: R$ ${totalGeral.toFixed(2)}</span>
+            <div style="text-align: right; border-top: 2px solid #000; padding-top: 10px;">
+                <span style="font-size: 16pt; font-weight: bold;">VALOR TOTAL DO PROJETO: ${formatarMoeda(totalGeral)}</span>
             </div>
+
         </body></html>`;
 
         const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `Completo_${p.cliente}.doc`;
+        link.download = `CRC_${com.cliente.replace(/\s+/g, '_')}_${completo ? 'Completo' : 'Comercial'}.doc`;
         link.click();
     }
 </script>
+
 </body>
 </html>
