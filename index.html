@@ -5,7 +5,7 @@
     <title>Sistema CRC - Integrado (Arquivo)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- ESTILOS VISUAIS (Mantendo o layout aprovado) --- */
+        /* --- ESTILOS VISUAIS --- */
         :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; }
         
         body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
@@ -46,7 +46,11 @@
         .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         .btn-add-inline:hover { background-color: #218838; }
         
-        .btn-generate { background: #333; color: white; margin-top: 20px; padding: 15px; font-size: 14px; }
+        /* Botão Verde Grande para Adicionar Plano */
+        .btn-add-block { background-color: var(--success); color: white; margin-top: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
+        .btn-add-block:hover { background-color: #218838; }
+
+        .btn-generate { background: #333; color: white; margin-top: 10px; padding: 15px; font-size: 14px; }
         .btn-generate:hover { background: #000; }
         
         .btn-save-tec { background: var(--warning); color: #333; margin-top: 20px; padding: 15px; font-size: 14px; }
@@ -55,7 +59,7 @@
         .btn-back { background: #6c757d; color: white; margin-top: 10px; }
         .btn-back:hover { background: #5a6268; }
 
-        .btn-upload { background: var(--info); color: white; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+        .btn-upload { background: var(--info); color: white; margin-top: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
         .btn-upload:hover { background: #138496; }
 
         /* RESUMO LATERAL */
@@ -120,9 +124,6 @@
 
         <div class="section-header">
             <h3 class="section-title">| CONFIGURAÇÃO DE PLANOS</h3>
-            <button class="btn-add-inline" id="btn-add-update" onclick="adicionarPlanoComercial()">
-                <i class="fa-solid fa-plus"></i> Adicionar Plano
-            </button>
         </div>
         
         <div class="form-group">
@@ -167,7 +168,13 @@
             </div>
         </div>
 
-        <button class="btn btn-save-tec" onclick="exportarArquivoProjeto()" style="background-color: var(--info); color: white;">
+        <button class="btn btn-add-block" onclick="adicionarPlanoComercial()">
+            <i class="fa-solid fa-plus"></i> ADICIONAR PLANO
+        </button>
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+        <button class="btn btn-upload" onclick="exportarArquivoProjeto()">
             <i class="fa-solid fa-download"></i> SALVAR ARQUIVO PARA EQUIPE TÉCNICA
         </button>
         
@@ -198,9 +205,6 @@
         <div id="area-tecnica-form" style="display: none;">
             <div class="section-header">
                 <h3 class="section-title">| EQUIPAMENTOS E MÃO DE OBRA</h3>
-                <button class="btn-add-inline" onclick="adicionarItemTecnico()">
-                    <i class="fa-solid fa-plus"></i> Adicionar Item
-                </button>
             </div>
 
             <div class="form-group">
@@ -229,6 +233,11 @@
                 </select>
             </div>
 
+            <button class="btn btn-add-block" onclick="adicionarItemTecnico()">
+                <i class="fa-solid fa-plus"></i> ADICIONAR ITEM TÉCNICO
+            </button>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
             <button class="btn btn-save-tec" onclick="gerarDocumentoCompleto()">
                 <i class="fa-solid fa-file-word"></i> GERAR DOCUMENTO COMPLETO
             </button>
@@ -330,7 +339,10 @@
         select.value = "0";
         document.getElementById('qtdPlano').value = "1";
         document.getElementById('parceiraCheck').value = "nao";
+        document.getElementById('qtdParceira').value = "0";
+        document.getElementById('valorParceira').value = "0";
         toggleParceira();
+        
         renderizarResumo();
     }
 
@@ -338,13 +350,11 @@
     function exportarArquivoProjeto() {
         if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de salvar.");
 
-        // Atualiza cabeçalho
         dadosProjeto.comercial.cliente = document.getElementById('projeto').value || "Cliente";
         dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
         dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
-        dadosProjeto.id = Date.now(); // Gera um ID único baseado no tempo
+        dadosProjeto.id = Date.now();
 
-        // Cria o arquivo JSON para download
         const dataStr = JSON.stringify(dadosProjeto);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
 
@@ -367,13 +377,12 @@
                 const json = JSON.parse(e.target.result);
                 dadosProjeto = json; // Carrega na memória
                 
-                // Atualiza tela técnica
                 document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
                 document.getElementById('tec_display_itens_qtd').innerText = dadosProjeto.comercial.itens.length;
                 
-                document.getElementById('area-upload').style.display = 'none'; // Esconde upload
-                document.getElementById('info-projeto-carregado').style.display = 'block'; // Mostra info
-                document.getElementById('area-tecnica-form').style.display = 'block'; // Libera formulário
+                document.getElementById('area-upload').style.display = 'none';
+                document.getElementById('info-projeto-carregado').style.display = 'block';
+                document.getElementById('area-tecnica-form').style.display = 'block';
 
                 renderizarResumo();
             } catch (err) {
@@ -409,7 +418,7 @@
         renderizarResumo();
     }
 
-    // --- GERAÇÃO DE WORD (Função Única) ---
+    // --- GERAÇÃO DE WORD ---
     function gerarDocumentoCompleto() {
         gerarDocumentoWord(true);
     }
@@ -418,7 +427,6 @@
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
         
-        // Se estiver no comercial, atualiza dados antes de gerar
         if(!completo) {
             com.cliente = document.getElementById('projeto').value || "Cliente";
             com.cnpj = document.getElementById('cnpj').value;
@@ -494,7 +502,7 @@
         link.click();
     }
 
-    // --- UTILITÁRIOS GERAIS ---
+    // --- UTILITÁRIOS ---
     function mascaraCNPJ(i) {
         let v = i.value.replace(/\D/g, "").substring(0, 14);
         v = v.replace(/^(\d{2})(\d)/, "$1.$2");
