@@ -2,11 +2,11 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado</title>
+    <title>Sistema CRC - Integrado (Arquivo)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- ESTILOS VISUAIS (Mantendo o padrão aprovado) --- */
-        :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; }
+        /* --- ESTILOS VISUAIS (Mantendo o layout aprovado) --- */
+        :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; }
         
         body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         
@@ -55,6 +55,9 @@
         .btn-back { background: #6c757d; color: white; margin-top: 10px; }
         .btn-back:hover { background: #5a6268; }
 
+        .btn-upload { background: var(--info); color: white; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+        .btn-upload:hover { background: #138496; }
+
         /* RESUMO LATERAL */
         #lista-resumo { list-style: none; padding: 0; margin-top: 20px; border-top: 1px solid #eee; }
         .item-resumo { padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
@@ -90,12 +93,12 @@
             <div class="menu-btn" onclick="irPara('tela-comercial')">
                 <i class="fa-solid fa-briefcase"></i>
                 <h3>Comercial</h3>
-                <p>Criar orçamentos e propostas</p>
+                <p>Criar orçamentos e exportar arquivo.</p>
             </div>
             <div class="menu-btn" onclick="irPara('tela-tecnica')">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <h3>Equipe Técnica</h3>
-                <p>Gestão de infraestrutura</p>
+                <p>Carregar arquivo e complementar.</p>
             </div>
         </div>
     </div>
@@ -164,56 +167,73 @@
             </div>
         </div>
 
-        <button class="btn btn-generate" onclick="salvarComercialEGerar()">SALVAR E GERAR DOCUMENTO</button>
+        <button class="btn btn-save-tec" onclick="exportarArquivoProjeto()" style="background-color: var(--info); color: white;">
+            <i class="fa-solid fa-download"></i> SALVAR ARQUIVO PARA EQUIPE TÉCNICA
+        </button>
+        
+        <button class="btn btn-generate" onclick="gerarDocumentoWord(false)">APENAS GERAR WORD (PRELIMINAR)</button>
         <button class="btn btn-back" onclick="irPara('tela-inicial')">VOLTAR AO MENU</button>
     </div>
 
     <div id="tela-tecnica" class="card screen">
         <h2><i class="fa-solid fa-screwdriver-wrench"></i> Escopo Técnico</h2>
         
-        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
-            <p style="margin: 0; font-size: 13px; color: #555;">
-                <i class="fa-solid fa-info-circle"></i> 
-                Os dados comerciais já estão carregados. Adicione os equipamentos abaixo para complementar o orçamento.
-            </p>
-        </div>
-
-        <div class="section-header">
-            <h3 class="section-title">| EQUIPAMENTOS E MÃO DE OBRA</h3>
-            <button class="btn-add-inline" onclick="adicionarItemTecnico()">
-                <i class="fa-solid fa-plus"></i> Adicionar Item
+        <div id="area-upload" style="border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; background: #f9f9f9;">
+            <i class="fa-solid fa-file-import" style="font-size: 30px; color: #999; margin-bottom: 10px;"></i>
+            <p style="margin: 0; color: #555; font-size: 14px;">Carregue o arquivo gerado pelo Comercial</p>
+            <input type="file" id="arquivoInput" accept=".json" style="display: none;" onchange="carregarArquivo(this)">
+            <button class="btn btn-add-inline" style="margin: 10px auto; width: auto;" onclick="document.getElementById('arquivoInput').click()">
+                Selecionar Arquivo
             </button>
         </div>
 
-        <div class="form-group">
-            <label>Equipamento / Descrição</label>
-            <input type="text" id="tec_equipamento" placeholder="Ex: Roteador, Cabo, Instalação...">
+        <div id="info-projeto-carregado" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+            <p style="margin: 0; font-size: 13px; color: #555;">
+                <i class="fa-solid fa-check-circle"></i> 
+                Projeto carregado: <b id="tec_display_cliente">---</b><br>
+                Itens comerciais importados: <span id="tec_display_itens_qtd">0</span>
+            </p>
         </div>
 
-        <div class="row">
-            <div class="form-group">
-                <label>Quantidade</label>
-                <input type="number" id="tec_qtd" value="1" min="1">
+        <div id="area-tecnica-form" style="display: none;">
+            <div class="section-header">
+                <h3 class="section-title">| EQUIPAMENTOS E MÃO DE OBRA</h3>
+                <button class="btn-add-inline" onclick="adicionarItemTecnico()">
+                    <i class="fa-solid fa-plus"></i> Adicionar Item
+                </button>
             </div>
+
             <div class="form-group">
-                <label>Valor Unitário (R$)</label>
-                <input type="number" id="tec_valor" value="0">
+                <label>Equipamento / Descrição</label>
+                <input type="text" id="tec_equipamento" placeholder="Ex: Roteador, Cabo, Instalação...">
             </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Quantidade</label>
+                    <input type="number" id="tec_qtd" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Valor Unitário (R$)</label>
+                    <input type="number" id="tec_valor" value="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tipo de Equipe</label>
+                <select id="tec_tipo">
+                    <option value="CLT">CLT (Própria)</option>
+                    <option value="Terceira">Terceira</option>
+                    <option value="Parceira">Parceira</option>
+                    <option value="Duas Etapas">Duas Etapas</option>
+                </select>
+            </div>
+
+            <button class="btn btn-save-tec" onclick="gerarDocumentoCompleto()">
+                <i class="fa-solid fa-file-word"></i> GERAR DOCUMENTO COMPLETO
+            </button>
         </div>
 
-        <div class="form-group">
-            <label>Tipo de Equipe</label>
-            <select id="tec_tipo">
-                <option value="CLT">CLT (Própria)</option>
-                <option value="Terceira">Terceira</option>
-                <option value="Parceira">Parceira</option>
-                <option value="Duas Etapas">Duas Etapas</option>
-            </select>
-        </div>
-
-        <button class="btn btn-save-tec" onclick="gerarDocumentoCompleto()">
-            <i class="fa-solid fa-file-word"></i> GERAR DOCUMENTO COMPLETO
-        </button>
         <button class="btn btn-back" onclick="irPara('tela-inicial')">VOLTAR AO MENU</button>
     </div>
 
@@ -244,15 +264,10 @@
 
 <script>
     // --- ESTADO DA APLICAÇÃO ---
-    // Armazena dados na memória enquanto a página estiver aberta
     let dadosProjeto = {
-        comercial: {
-            cliente: '', cnpj: '', consultor: '',
-            itens: []
-        },
-        tecnico: {
-            itens: []
-        }
+        id: null,
+        comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
+        tecnico: { itens: [] }
     };
 
     // --- NAVEGAÇÃO ---
@@ -264,7 +279,7 @@
         const container = document.getElementById('main-container');
         const blocoTec = document.getElementById('bloco-resumo-tec');
 
-        // Configuração do Layout dependendo da tela
+        // Configuração do Layout
         if (telaId === 'tela-inicial') {
             resumo.style.display = 'none';
             container.style.maxWidth = '800px';
@@ -274,7 +289,7 @@
             renderizarResumo();
         }
 
-        // Se for tela técnica, mostra a lista técnica no resumo
+        // Visibilidade do bloco técnico no resumo
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
         } else {
@@ -282,32 +297,7 @@
         }
     }
 
-    // --- UTILITÁRIOS ---
-    function mascaraCNPJ(i) {
-        let v = i.value.replace(/\D/g, "").substring(0, 14);
-        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
-        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
-        v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
-        v = v.replace(/(\d{4})(\d)/, "$1-$2");
-        i.value = v;
-    }
-
-    function toggleParceira() {
-        const display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
-        document.getElementById('secao-parceira').style.display = display;
-    }
-
-    function formatarMoeda(valor) {
-        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
-
-    function formatarDataBR(dataISO) {
-        if (!dataISO) return "Não informada";
-        const [ano, mes, dia] = dataISO.split('-');
-        return `${dia}/${mes}/${ano}`;
-    }
-
-    // --- FUNÇÕES COMERCIAIS ---
+    // --- COMERCIAL: Adicionar Item ---
     function adicionarPlanoComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
@@ -319,7 +309,6 @@
         const servico = document.getElementById('servico').value;
         const dataE = document.getElementById('dataEntrega').value;
         
-        // Parceira
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
@@ -327,14 +316,13 @@
         const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
         const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
 
-        // Adiciona ao array global
         dadosProjeto.comercial.itens.push({
             id: Date.now(),
             nome: nomeFinal,
             qtd: qtd,
             valorUnit: valorUnit,
-            servico: servico, // Guardando o serviço
-            dataEntrega: dataE, // Guardando a data
+            servico: servico,
+            dataEntrega: dataE,
             total: totalItem
         });
 
@@ -343,23 +331,59 @@
         document.getElementById('qtdPlano').value = "1";
         document.getElementById('parceiraCheck').value = "nao";
         toggleParceira();
-        
         renderizarResumo();
     }
 
-    function salvarComercialEGerar() {
-        if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de gerar.");
+    // --- COMERCIAL: Exportar Arquivo (O "ID") ---
+    function exportarArquivoProjeto() {
+        if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de salvar.");
 
-        // Salva dados do cabeçalho na memória
+        // Atualiza cabeçalho
         dadosProjeto.comercial.cliente = document.getElementById('projeto').value || "Cliente";
         dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
         dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
+        dadosProjeto.id = Date.now(); // Gera um ID único baseado no tempo
 
-        // Gera o Word (Função unificada no final)
-        gerarDocumentoWord(false); // false = apenas comercial
+        // Cria o arquivo JSON para download
+        const dataStr = JSON.stringify(dadosProjeto);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+        const exportFileDefaultName = `Projeto_CRC_${dadosProjeto.comercial.cliente}.json`;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
     }
 
-    // --- FUNÇÕES TÉCNICAS ---
+    // --- TÉCNICO: Carregar Arquivo ---
+    function carregarArquivo(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const json = JSON.parse(e.target.result);
+                dadosProjeto = json; // Carrega na memória
+                
+                // Atualiza tela técnica
+                document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
+                document.getElementById('tec_display_itens_qtd').innerText = dadosProjeto.comercial.itens.length;
+                
+                document.getElementById('area-upload').style.display = 'none'; // Esconde upload
+                document.getElementById('info-projeto-carregado').style.display = 'block'; // Mostra info
+                document.getElementById('area-tecnica-form').style.display = 'block'; // Libera formulário
+
+                renderizarResumo();
+            } catch (err) {
+                alert("Erro ao ler arquivo. Certifique-se que é um arquivo válido gerado pelo Comercial.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // --- TÉCNICO: Adicionar Item ---
     function adicionarItemTecnico() {
         const nome = document.getElementById('tec_equipamento').value;
         if(!nome) return alert("Digite o nome do equipamento.");
@@ -379,103 +403,35 @@
             total: totalItem
         });
 
-        // Limpa campos
         document.getElementById('tec_equipamento').value = "";
         document.getElementById('tec_qtd').value = "1";
         document.getElementById('tec_valor').value = "0";
-
         renderizarResumo();
     }
 
+    // --- GERAÇÃO DE WORD (Função Única) ---
     function gerarDocumentoCompleto() {
-        // Gera o word com tudo (true)
         gerarDocumentoWord(true);
     }
 
-    // --- RESUMO E RENDERIZAÇÃO ---
-    function renderizarResumo() {
-        const listaCom = document.getElementById('lista-resumo-com');
-        const listaTec = document.getElementById('lista-resumo-tec');
-        const totalEl = document.getElementById('valorTotalFinal');
-        
-        let totalGeral = 0;
-
-        // Renderiza Comercial
-        listaCom.innerHTML = "";
-        if (dadosProjeto.comercial.itens.length > 0) {
-            dadosProjeto.comercial.itens.forEach((item, index) => {
-                totalGeral += item.total;
-                listaCom.innerHTML += `
-                    <li class="item-resumo">
-                        <div class="item-info">
-                            <b>${item.nome}</b>
-                            <span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span>
-                        </div>
-                        <div class="acoes-item">
-                            <span style="font-weight:bold; font-size:13px; margin-right:5px;">${formatarMoeda(item.total)}</span>
-                            <button class="btn-icon del" onclick="removerItem('com', ${index})"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </li>`;
-            });
-        } else {
-            listaCom.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum plano.</li>';
-        }
-
-        // Renderiza Técnico
-        listaTec.innerHTML = "";
-        if (dadosProjeto.tecnico.itens.length > 0) {
-            dadosProjeto.tecnico.itens.forEach((item, index) => {
-                totalGeral += item.total;
-                listaTec.innerHTML += `
-                    <li class="item-resumo">
-                        <div class="item-info">
-                            <b>${item.nome}</b>
-                            <span>${item.tipo} | ${item.qtd}x ${formatarMoeda(item.valorUnit)}</span>
-                        </div>
-                        <div class="acoes-item">
-                            <span style="font-weight:bold; font-size:13px; margin-right:5px;">${formatarMoeda(item.total)}</span>
-                            <button class="btn-icon del" onclick="removerItem('tec', ${index})"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </li>`;
-            });
-        } else {
-            listaTec.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>';
-        }
-
-        totalEl.innerText = formatarMoeda(totalGeral);
-    }
-
-    function removerItem(tipo, index) {
-        if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
-        if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
-        renderizarResumo();
-    }
-
-    // --- GERAÇÃO DO WORD (O CORAÇÃO DO SISTEMA) ---
     function gerarDocumentoWord(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
         
-        // Se os dados do cabeçalho estiverem vazios (caso esteja vindo da tela técnica), tenta pegar do DOM
-        if(!com.cliente) {
-             // Caso raro, mas previne erro
-             com.cliente = document.getElementById('projeto').value || "Cliente";
-             com.cnpj = document.getElementById('cnpj').value;
-             com.consultor = document.getElementById('consultor').value;
+        // Se estiver no comercial, atualiza dados antes de gerar
+        if(!completo) {
+            com.cliente = document.getElementById('projeto').value || "Cliente";
+            com.cnpj = document.getElementById('cnpj').value;
+            com.consultor = document.getElementById('consultor').value;
         }
 
-        const hoje = new Date().toLocaleDateString('pt-BR');
-        
-        // Pega data do primeiro item comercial ou vazio
         const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
         const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
 
-        // Totais
         const totalComercial = com.itens.reduce((acc, i) => acc + i.total, 0);
         const totalTecnico = tec.itens.reduce((acc, i) => acc + i.total, 0);
         const totalGeral = totalComercial + totalTecnico;
 
-        // Monta Linhas HTML
         const linhasComercial = com.itens.map(i => `
             <tr>
                 <td style="padding:5px;">${i.nome}</td>
@@ -487,16 +443,16 @@
             <tr>
                 <td style="padding:5px;">${i.nome} <br><span style="font-size:10px; color:#555;">(Equipe: ${i.tipo})</span></td>
                 <td align="center">${i.qtd}</td>
+                <td align="right">${formatarMoeda(i.valorUnit)}</td>
                 <td align="right">${formatarMoeda(i.total)}</td>
             </tr>`).join('');
 
-        // Se for completo, adiciona a tabela técnica, senão deixa vazio
         const blocoTecnicoHTML = completo ? `
-            <h3 style="color:#000;">3. ESCOPO TÉCNICO</h3>
+            <h3 style="color:#000; margin-top:20px;">3. ESCOPO TÉCNICO</h3>
             <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse:collapse; font-family:Arial;">
-                <tr style="background:#eee;"><td><b>Equipamento / Mão de Obra</b></td><td width="50" align="center"><b>Qtd</b></td><td width="100" align="right"><b>Total</b></td></tr>
-                ${linhasTecnico.length > 0 ? linhasTecnico : '<tr><td colspan="3" align="center">Nenhum item técnico.</td></tr>'}
-                <tr><td colspan="2" align="right"><b>Subtotal Técnico:</b></td><td align="right"><b>${formatarMoeda(totalTecnico)}</b></td></tr>
+                <tr style="background:#eee;"><td><b>Equipamento / Mão de Obra</b></td><td width="50" align="center"><b>Qtd</b></td><td width="100" align="right"><b>Unit.</b></td><td width="100" align="right"><b>Total</b></td></tr>
+                ${linhasTecnico.length > 0 ? linhasTecnico : '<tr><td colspan="4" align="center">Nenhum item técnico.</td></tr>'}
+                <tr><td colspan="3" align="right"><b>Subtotal Técnico:</b></td><td align="right"><b>${formatarMoeda(totalTecnico)}</b></td></tr>
             </table>
         ` : '';
 
@@ -504,9 +460,8 @@
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
-            
             <h2 style="border-bottom: 2px solid #333;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
-            <p>Data de geração: ${hoje}</p>
+            <p>Data de geração: ${new Date().toLocaleDateString('pt-BR')}</p>
             
             <h3>1. DADOS DO CLIENTE</h3>
             <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial;">
@@ -530,16 +485,81 @@
             <div style="text-align: right; border-top: 2px solid #000; padding-top: 10px;">
                 <span style="font-size: 16pt; font-weight: bold;">VALOR TOTAL DO PROJETO: ${formatarMoeda(totalGeral)}</span>
             </div>
-
         </body></html>`;
 
         const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `CRC_${com.cliente.replace(/\s+/g, '_')}_${completo ? 'Completo' : 'Comercial'}.doc`;
+        link.download = `CRC_${com.cliente}_${completo ? 'Completo' : 'Comercial'}.doc`;
         link.click();
     }
-</script>
 
+    // --- UTILITÁRIOS GERAIS ---
+    function mascaraCNPJ(i) {
+        let v = i.value.replace(/\D/g, "").substring(0, 14);
+        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+        v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+        v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        i.value = v;
+    }
+    function toggleParceira() {
+        const display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
+        document.getElementById('secao-parceira').style.display = display;
+    }
+    function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    function formatarDataBR(d) { 
+        if (!d) return "---";
+        const [ano, mes, dia] = d.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    function renderizarResumo() {
+        const listaCom = document.getElementById('lista-resumo-com');
+        const listaTec = document.getElementById('lista-resumo-tec');
+        
+        let totalGeral = 0;
+
+        // Comercial
+        listaCom.innerHTML = "";
+        if (dadosProjeto.comercial.itens.length > 0) {
+            dadosProjeto.comercial.itens.forEach((item, index) => {
+                totalGeral += item.total;
+                listaCom.innerHTML += `
+                    <li class="item-resumo">
+                        <div class="item-info"><b>${item.nome}</b><span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
+                        <div class="acoes-item"><span style="font-weight:bold;">${formatarMoeda(item.total)}</span>
+                        <button class="btn-icon del" onclick="removerItem('com', ${index})"><i class="fa-solid fa-trash"></i></button></div>
+                    </li>`;
+            });
+        } else {
+            listaCom.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum plano.</li>';
+        }
+
+        // Técnico
+        listaTec.innerHTML = "";
+        if (dadosProjeto.tecnico.itens.length > 0) {
+            dadosProjeto.tecnico.itens.forEach((item, index) => {
+                totalGeral += item.total;
+                listaTec.innerHTML += `
+                    <li class="item-resumo">
+                        <div class="item-info"><b>${item.nome}</b><span>${item.tipo} | ${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
+                        <div class="acoes-item"><span style="font-weight:bold;">${formatarMoeda(item.total)}</span>
+                        <button class="btn-icon del" onclick="removerItem('tec', ${index})"><i class="fa-solid fa-trash"></i></button></div>
+                    </li>`;
+            });
+        } else {
+            listaTec.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>';
+        }
+
+        document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
+    }
+
+    function removerItem(tipo, index) {
+        if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
+        if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
+        renderizarResumo();
+    }
+</script>
 </body>
 </html>
