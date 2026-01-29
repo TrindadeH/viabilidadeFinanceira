@@ -2,204 +2,201 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Comercial</title>
+    <title>Sistema CRC - Comercial Multi-Planos</title>
     <style>
-        :root { --primary: #333; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 550px; }
+        :root { --primary: #333; --bg: #f0f2f5; --success: #28a745; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .container { display: flex; gap: 20px; width: 100%; max-width: 1000px; align-items: flex-start; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex: 1; }
+        .resumo-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px; position: sticky; top: 20px; }
+        
         h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; margin-top: 0; }
         h3 { font-size: 14px; color: #666; text-transform: uppercase; margin-top: 20px; border-left: 4px solid var(--primary); padding-left: 10px; }
+        
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #444; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        input:read-only { background-color: #f9f9f9; color: #777; }
+        input:read-only { background-color: #f9f9f9; }
+        
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #000; }
-        .btn-secondary { background: #6c757d; color: white; margin-top: 5px; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-success { background: var(--success); color: white; float: right; margin-bottom: 10px; }
+        .btn-secondary { background: #6c757d; color: white; width: 100%; margin-top: 10px; }
+        
+        #lista-resumo { list-style: none; padding: 0; margin-top: 15px; }
+        .item-resumo { font-size: 13px; padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .item-resumo span { color: #888; font-size: 11px; display: block; }
+        
         #secao-parceira { background: #fdfdfd; border: 1px dashed #ccc; padding: 15px; border-radius: 8px; margin-top: 10px; display: none; }
+        
+        .screen { display: none; }
+        .screen.active { display: block; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div id="menu">
-        <h1 style="text-align: center; color: var(--primary);">Sistema CRC</h1>
-        <p style="text-align: center; color: #888;">Gestão de Custo Operacional</p>
-        <button class="btn btn-primary" onclick="show('form')">SETOR COMERCIAL</button>
-    </div>
-
-    <div id="form" style="display:none;">
-        <h2>Dados Comercial</h2>
-        
-        <div class="form-group">
-            <label>Cliente/Projeto</label>
-            <input type="text" id="projeto">
+<div class="container">
+    <div class="card">
+        <div id="menu" class="screen active">
+            <h1 style="text-align: center; color: var(--primary);">Sistema CRC</h1>
+            <button class="btn btn-primary" onclick="show('form')">SETOR COMERCIAL</button>
         </div>
 
-        <div class="row">
+        <div id="form" class="screen">
+            <h2>Dados Comercial</h2>
             <div class="form-group">
-                <label>CNPJ</label>
-                <input type="text" id="cnpj" placeholder="00.000.000/0000-00">
+                <label>Cliente/Projeto</label>
+                <input type="text" id="projeto">
             </div>
-            <div class="form-group">
-                <label>Consultor</label>
-                <input type="text" id="consultor">
+            <div class="row">
+                <div class="form-group"><label>CNPJ</label><input type="text" id="cnpj"></div>
+                <div class="form-group"><label>Consultor</label><input type="text" id="consultor"></div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <label>Plano</label>
-            <select id="plano" onchange="calc()">
-                <option value="0">Selecione um plano...</option>
-                <option value="150">Plano Smart - R$ 150,00</option>
-                <option value="300">Plano Business - R$ 300,00</option>
-                <option value="500">Plano Enterprise - R$ 500,00</option>
-            </select>
-        </div>
+            <h3 style="display: inline-block;">Adicionar Itens</h3>
+            <button class="btn btn-success" onclick="adicionarPlano()">+ Adicionar Plano</button>
 
-        <div class="row">
-            <div class="form-group">
-                <label>Quantidade de Plano</label>
-                <input type="number" id="qtdPlano" value="1" min="1" oninput="calc()">
-            </div>
-            <div class="form-group">
-                <label>Valor Unitário (R$)</label>
-                <input type="text" id="valorUnit" readonly>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="form-group">
-                <label>Tipo de Serviço</label>
-                <select id="servico">
-                    <option value="Internet">Internet</option>
-                    <option value="Voz">Voz</option>
-                    <option value="Dados">Dados</option>
+            <div class="form-group" style="clear: both;">
+                <label>Plano</label>
+                <select id="plano">
+                    <option value="0">Selecione...</option>
+                    <option value="150">Plano Smart - R$ 150,00</option>
+                    <option value="300">Plano Business - R$ 300,00</option>
+                    <option value="500">Plano Enterprise - R$ 500,00</option>
                 </select>
             </div>
+            <div class="row">
+                <div class="form-group"><label>Quantidade</label><input type="number" id="qtdPlano" value="1" min="1"></div>
+                <div class="form-group"><label>Tipo de Serviço</label>
+                    <select id="servico">
+                        <option value="Internet">Internet</option>
+                        <option value="Voz">Voz</option>
+                        <option value="Dados">Dados</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Data da Entrega</label>
                 <input type="date" id="dataEntrega">
             </div>
-        </div>
 
-        <div class="form-group">
-            <label>Parceira?</label>
-            <select id="parceiraCheck" onchange="toggleParceira()">
-                <option value="nao">Não</option>
-                <option value="sim">Sim</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label>Parceira?</label>
+                <select id="parceiraCheck" onchange="toggleParceira()">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
 
-        <div id="secao-parceira">
-            <h3>Dados da Parceira</h3>
-            <div class="row">
-                <div class="form-group">
-                    <label>Qtd. Pontos Parceira</label>
-                    <input type="number" id="qtdParceira" value="0" oninput="calc()">
-                </div>
-                <div class="form-group">
-                    <label>Valor por Ponto (R$)</label>
-                    <input type="number" id="valorParceira" value="0" oninput="calc()">
+            <div id="secao-parceira">
+                <div class="row">
+                    <div class="form-group"><label>Qtd. Pontos</label><input type="number" id="qtdParceira" value="0" oninput="calcTotalFinal()"></div>
+                    <div class="form-group"><label>Valor por Ponto (R$)</label><input type="number" id="valorParceira" value="0" oninput="calcTotalFinal()"></div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-group" style="margin-top: 20px;">
-            <label style="font-size: 16px;">Valor Total Final</label>
-            <input type="text" id="valorTotal" readonly style="font-size: 20px; font-weight: bold; color: #2e7d32; background: #e8f5e9; border: 1px solid #2e7d32;">
+            <button class="btn btn-primary" style="margin-top: 20px;" onclick="gerar()">GERAR WORD EM ARIAL</button>
+            <button class="btn btn-secondary" onclick="show('menu')">VOLTAR</button>
         </div>
+    </div>
 
-        <button class="btn btn-primary" onclick="gerar()">GERAR WORD EM ARIAL</button>
-        <button class="btn btn-secondary" onclick="show('menu')">VOLTAR AO MENU</button>
+    <div id="resumo-container" class="resumo-card" style="display: none;">
+        <h2 style="font-size: 18px;">Resumo do Pedido</h2>
+        <ul id="lista-resumo"></ul>
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #eee;">
+            <label>VALOR TOTAL FINAL</label>
+            <div id="valorTotalFinal" style="font-size: 22px; font-weight: bold; color: #2e7d32;">R$ 0,00</div>
+        </div>
     </div>
 </div>
 
 <script>
+    let planosAdicionados = [];
+
     function show(id) {
-        document.getElementById('menu').style.display = id === 'menu' ? 'block' : 'none';
-        document.getElementById('form').style.display = id === 'form' ? 'block' : 'none';
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('resumo-container').style.display = id === 'form' ? 'block' : 'none';
     }
 
     function toggleParceira() {
-        const isSim = document.getElementById('parceiraCheck').value === 'sim';
-        document.getElementById('secao-parceira').style.display = isSim ? 'block' : 'none';
-        if(!isSim) {
-            document.getElementById('qtdParceira').value = 0;
-            document.getElementById('valorParceira').value = 0;
-        }
-        calc();
+        document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
+        calcTotalFinal();
     }
 
-    function calc() {
-        const vUnitPlano = parseFloat(document.getElementById('plano').value) || 0;
-        const qtdPlano = parseInt(document.getElementById('qtdPlano').value) || 0;
+    function adicionarPlano() {
+        const select = document.getElementById('plano');
+        const valorUnit = parseFloat(select.value);
+        const nomePlano = select.options[select.selectedIndex].text.split(' - ')[0];
+        const qtd = parseInt(document.getElementById('qtdPlano').value);
+
+        if (valorUnit === 0) return alert("Selecione um plano válido!");
+
+        planosAdicionados.push({
+            nome: nomePlano,
+            qtd: qtd,
+            valorUnit: valorUnit,
+            total: valorUnit * qtd
+        });
+
+        atualizarResumo();
+    }
+
+    function atualizarResumo() {
+        const lista = document.getElementById('lista-resumo');
+        lista.innerHTML = "";
         
-        const qtdParceira = parseInt(document.getElementById('qtdParceira').value) || 0;
-        const vUnitParceira = parseFloat(document.getElementById('valorParceira').value) || 0;
+        planosAdicionados.forEach((p, index) => {
+            lista.innerHTML += `
+                <li class="item-resumo">
+                    <div><b>${p.nome}</b><span>Qtd: ${p.qtd} | Un: R$ ${p.valorUnit.toFixed(2)}</span></div>
+                    <div>R$ ${p.total.toFixed(2)}</div>
+                </li>`;
+        });
+        calcTotalFinal();
+    }
 
-        document.getElementById('valorUnit').value = vUnitPlano.toFixed(2);
+    function calcTotalFinal() {
+        let somaPlanos = planosAdicionados.reduce((acc, p) => acc + p.total, 0);
+        
+        const qtdP = parseInt(document.getElementById('qtdParceira').value) || 0;
+        const valP = parseFloat(document.getElementById('valorParceira').value) || 0;
+        const totalParceira = qtdP * valP;
 
-        const total = (vUnitPlano * qtdPlano) + (qtdParceira * vUnitParceira);
-        document.getElementById('valorTotal').value = "R$ " + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        const totalGeral = somaPlanos + totalParceira;
+        document.getElementById('valorTotalFinal').innerText = "R$ " + totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     }
 
     function gerar() {
-        const dados = {
-            projeto: document.getElementById('projeto').value || "Não informado",
-            cnpj: document.getElementById('cnpj').value || "Não informado",
-            consultor: document.getElementById('consultor').value || "Não informado",
-            plano: document.getElementById('plano').options[document.getElementById('plano').selectedIndex].text,
-            qtd: document.getElementById('qtdPlano').value,
-            vUnit: document.getElementById('valorUnit').value,
-            servico: document.getElementById('servico').value,
-            entrega: document.getElementById('dataEntrega').value,
-            total: document.getElementById('valorTotal').value,
-            parceira: document.getElementById('parceiraCheck').value.toUpperCase(),
-            qtdParc: document.getElementById('qtdParceira').value,
-            vParc: document.getElementById('valorParceira').value
-        };
+        const projeto = document.getElementById('projeto').value || "Projeto";
+        let tabelaItens = planosAdicionados.map(p => `
+            <tr>
+                <td style="font-family: Arial;">${p.nome}</td>
+                <td style="font-family: Arial;">${p.qtd}</td>
+                <td style="font-family: Arial;">R$ ${p.total.toFixed(2)}</td>
+            </tr>`).join('');
 
         const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
         <body style="font-family: Arial, sans-serif;">
             <h2 style="font-family: Arial; border-bottom: 2px solid #000;">RESUMO DE CUSTO OPERACIONAL – CRC</h2>
+            <p style="font-family: Arial;"><b>Projeto:</b> ${projeto} | <b>Consultor:</b> ${document.getElementById('consultor').value}</p>
             
-            <h3 style="font-family: Arial;">1. Identificação</h3>
-            <p style="font-family: Arial;"><b>Projeto:</b> ${dados.projeto} | <b>CNPJ:</b> ${dados.cnpj}</p>
-            <p style="font-family: Arial;"><b>Consultor:</b> ${dados.consultor} | <b>Data Entrega:</b> ${dados.entrega}</p>
-
-            <h3 style="font-family: Arial;">2. Detalhes do Plano</h3>
-            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse; font-family: Arial;">
-                <tr style="background-color: #f2f2f2;">
-                    <td><b>Plano</b></td><td>${dados.plano}</td>
-                </tr>
-                <tr>
-                    <td><b>Quantidade</b></td><td>${dados.qtd}</td>
-                </tr>
-                <tr style="background-color: #f2f2f2;">
-                    <td><b>Valor Unitário</b></td><td>R$ ${dados.vUnit}</td>
-                </tr>
-                <tr>
-                    <td><b>Serviço</b></td><td>${dados.servico}</td>
-                </tr>
+            <h3 style="font-family: Arial;">Itens do Orçamento</h3>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #eee;"><td><b>Plano</b></td><td><b>Qtd</b></td><td><b>Subtotal</b></td></tr>
+                ${tabelaItens}
             </table>
-
-            <h3 style="font-family: Arial;">3. Parceira</h3>
-            <p style="font-family: Arial;"><b>Possui Parceira:</b> ${dados.parceira}</p>
-            ${dados.parceira === 'SIM' ? `<p style="font-family: Arial;"><b>Qtd Pontos:</b> ${dados.qtdParc} | <b>Valor por Ponto:</b> R$ ${dados.vParc}</p>` : ''}
-
-            <hr>
-            <h2 style="font-family: Arial; text-align: right;">VALOR TOTAL: ${dados.total}</h2>
+            
+            <h2 style="text-align: right; font-family: Arial;">TOTAL: ${document.getElementById('valorTotalFinal').innerText}</h2>
         </body></html>`;
 
         const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `CRC_${dados.projeto}.doc`;
+        link.download = `CRC_${projeto}.doc`;
         link.click();
     }
 </script>
