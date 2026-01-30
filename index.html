@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado (Final)</title>
+    <title>Sistema CRC - Integrado (Final v2)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -38,13 +38,14 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 12px; color: #555; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; background: #fff; }
+        input[readonly] { background-color: #f0f0f0; color: #555; font-weight: bold; border-color: #ccc; }
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; } /* Nova classe para 3 colunas */
 
         /* BOTÕES GERAIS */
         .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
         
-        /* BOTÃO ADICIONAR (Compacto/Enxuto) */
         .btn-add-compact { 
             background-color: var(--success); color: white; border: none; 
             padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; 
@@ -56,7 +57,6 @@
 
         .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         
-        /* BOTÕES DE AÇÃO DO ARQUIVO/DOC */
         .btn-generate { background: #333; color: white; margin-top: 10px; padding: 15px; font-size: 14px; }
         .btn-generate:hover { background: #000; }
         
@@ -87,7 +87,6 @@
 
         #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
         
-        /* DISPLAY CONTROL */
         .screen { display: none; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -205,11 +204,17 @@
         </div>
 
         <div id="info-projeto-carregado" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
-            <p style="margin: 0; font-size: 13px; color: #555;">
-                <i class="fa-solid fa-check-circle"></i> 
-                Projeto carregado: <b id="tec_display_cliente">---</b><br>
-                Itens comerciais importados: <span id="tec_display_itens_qtd">0</span>
-            </p>
+            <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                <div style="margin-bottom: 5px;">
+                    <i class="fa-solid fa-check-circle" style="color: #2196f3;"></i> <b>Projeto Carregado</b>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <span><b>Cliente:</b> <span id="tec_display_cliente">---</span></span>
+                    <span><b>Consultor:</b> <span id="tec_display_consultor">---</span></span>
+                    <span><b>Data Arquivo:</b> <span id="tec_display_data">---</span></span>
+                    <span><b>Itens Comercial:</b> <span id="tec_display_itens_qtd">0</span></span>
+                </div>
+            </div>
         </div>
 
         <div id="area-tecnica-form" style="display: none;">
@@ -222,14 +227,18 @@
                 <input type="text" id="tec_equipamento" placeholder="Ex: Roteador, Cabo, Instalação...">
             </div>
 
-            <div class="row">
+            <div class="row-3">
                 <div class="form-group">
                     <label>Quantidade</label>
-                    <input type="number" id="tec_qtd" value="1" min="1">
+                    <input type="number" id="tec_qtd" value="1" min="1" oninput="calcTotalItemTec()">
                 </div>
                 <div class="form-group">
-                    <label>Valor Unitário (R$)</label>
-                    <input type="number" id="tec_valor" value="0">
+                    <label>Valor Unit. (R$)</label>
+                    <input type="number" id="tec_valor" value="0" oninput="calcTotalItemTec()">
+                </div>
+                <div class="form-group">
+                    <label>Total Item (R$)</label>
+                    <input type="text" id="tec_total_preview" value="R$ 0,00" readonly>
                 </div>
             </div>
 
@@ -284,18 +293,16 @@
 </div>
 
 <script>
-    // --- ESTADO DA APLICAÇÃO ---
     let dadosProjeto = {
         id: null,
+        dataCriacao: null, // Novo campo
         comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
         tecnico: { itens: [] }
     };
 
-    // Controle de Edição
     let editIndexCom = null;
     let editIndexTec = null;
 
-    // --- NAVEGAÇÃO ---
     function irPara(telaId) {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(telaId).classList.add('active');
@@ -320,7 +327,7 @@
         }
     }
 
-    // --- COMERCIAL: Adicionar ou Editar ---
+    // --- COMERCIAL ---
     function adicionarPlanoComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
@@ -331,7 +338,6 @@
         const qtd = parseInt(document.getElementById('qtdPlano').value) || 1;
         const servico = document.getElementById('servico').value;
         const dataE = document.getElementById('dataEntrega').value;
-        
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
@@ -369,11 +375,9 @@
         document.getElementById('qtdParceira').value = "0";
         document.getElementById('valorParceira').value = "0";
         toggleParceira();
-        
         renderizarResumo();
     }
 
-    // --- COMERCIAL: Exportar ---
     function exportarArquivoProjeto() {
         if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de salvar.");
 
@@ -381,6 +385,7 @@
         dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
         dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
         dadosProjeto.id = Date.now();
+        dadosProjeto.dataCriacao = new Date().toLocaleDateString('pt-BR'); // Salva Data
 
         const dataStr = JSON.stringify(dadosProjeto);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -390,7 +395,7 @@
         linkElement.click();
     }
 
-    // --- TÉCNICO: Carregar ---
+    // --- TÉCNICO ---
     function carregarArquivo(input) {
         const file = input.files[0];
         if (!file) return;
@@ -399,7 +404,11 @@
         reader.onload = function(e) {
             try {
                 dadosProjeto = JSON.parse(e.target.result);
+                
+                // Preencher INFO Box com novos campos
                 document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
+                document.getElementById('tec_display_consultor').innerText = dadosProjeto.comercial.consultor || "---";
+                document.getElementById('tec_display_data').innerText = dadosProjeto.dataCriacao || "---";
                 document.getElementById('tec_display_itens_qtd').innerText = dadosProjeto.comercial.itens.length;
                 
                 document.getElementById('area-upload').style.display = 'none';
@@ -414,7 +423,12 @@
         reader.readAsText(file);
     }
 
-    // --- TÉCNICO: Adicionar ou Editar ---
+    function calcTotalItemTec() {
+        const qtd = parseInt(document.getElementById('tec_qtd').value) || 0;
+        const val = parseFloat(document.getElementById('tec_valor').value) || 0;
+        document.getElementById('tec_total_preview').value = formatarMoeda(qtd * val);
+    }
+
     function adicionarItemTecnico() {
         const nome = document.getElementById('tec_equipamento').value;
         if(!nome) return alert("Digite o nome do equipamento.");
@@ -446,10 +460,10 @@
         document.getElementById('tec_equipamento').value = "";
         document.getElementById('tec_qtd').value = "1";
         document.getElementById('tec_valor').value = "0";
+        document.getElementById('tec_total_preview').value = "R$ 0,00";
         renderizarResumo();
     }
 
-    // --- FUNÇÕES DE EDIÇÃO ---
     function editarItem(tipo, index) {
         if (tipo === 'com') {
             const item = dadosProjeto.comercial.itens[index];
@@ -460,7 +474,6 @@
                     break;
                 }
             }
-            
             document.getElementById('qtdPlano').value = item.qtd;
             document.getElementById('servico').value = item.servico;
             document.getElementById('dataEntrega').value = item.dataEntrega;
@@ -473,7 +486,6 @@
             const btn = document.getElementById('btn-add-comercial');
             btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Salvar Alteração';
             btn.classList.add('editing');
-            
             document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
 
         } else if (tipo === 'tec') {
@@ -482,12 +494,12 @@
             document.getElementById('tec_qtd').value = item.qtd;
             document.getElementById('tec_valor').value = item.valorUnit;
             document.getElementById('tec_tipo').value = item.tipo;
+            calcTotalItemTec();
 
             editIndexTec = index;
             const btn = document.getElementById('btn-add-tecnico');
             btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Salvar Alteração';
             btn.classList.add('editing');
-            
             document.getElementById('area-tecnica-form').scrollIntoView({ behavior: 'smooth' });
         }
     }
@@ -500,13 +512,11 @@
         }
     }
 
-    // --- RENDERIZAÇÃO ---
     function renderizarResumo() {
         const listaCom = document.getElementById('lista-resumo-com');
         const listaTec = document.getElementById('lista-resumo-tec');
         let totalGeral = 0;
 
-        // Comercial
         listaCom.innerHTML = "";
         if (dadosProjeto.comercial.itens.length > 0) {
             dadosProjeto.comercial.itens.forEach((item, index) => {
@@ -525,7 +535,6 @@
             listaCom.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum plano.</li>';
         }
 
-        // Técnico
         listaTec.innerHTML = "";
         if (dadosProjeto.tecnico.itens.length > 0) {
             dadosProjeto.tecnico.itens.forEach((item, index) => {
@@ -547,7 +556,6 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    // --- GERAÇÃO WORD ---
     function gerarDocumentoCompleto() { gerarDocumentoWord(true); }
 
     function gerarDocumentoWord(completo) {
@@ -602,9 +610,7 @@
         v = v.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
         i.value = v;
     }
-    function toggleParceira() {
-        document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
-    }
+    function toggleParceira() { document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none'; }
     function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
     function formatarDataBR(d) { return d ? d.split('-').reverse().join('/') : "---"; }
 </script>
