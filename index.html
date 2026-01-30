@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado (Final v2)</title>
+    <title>Sistema CRC - Integrado (Final v3)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -38,10 +38,11 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 12px; color: #555; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; background: #fff; }
-        input[readonly] { background-color: #f0f0f0; color: #555; font-weight: bold; border-color: #ccc; }
+        /* Campos Readonly com visual diferente */
+        input[readonly] { background-color: #f0f0f0; color: #555; font-weight: bold; border-color: #ccc; cursor: not-allowed; }
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; } /* Nova classe para 3 colunas */
+        .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
 
         /* BOTÕES GERAIS */
         .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
@@ -135,7 +136,7 @@
         
         <div class="form-group">
             <label>Plano</label>
-            <select id="plano">
+            <select id="plano" onchange="atualizarValoresComercial()">
                 <option value="0">Selecione...</option>
                 <option value="150">Plano Smart - R$ 150,00</option>
                 <option value="300">Plano Business - R$ 300,00</option>
@@ -143,8 +144,22 @@
             </select>
         </div>
         
+        <div class="row-3">
+            <div class="form-group">
+                <label>Quantidade</label>
+                <input type="number" id="qtdPlano" value="1" min="1" oninput="atualizarValoresComercial()">
+            </div>
+            <div class="form-group">
+                <label>Valor Unit. (R$)</label>
+                <input type="text" id="valorUnitPlano" value="0,00" readonly>
+            </div>
+            <div class="form-group">
+                <label>Total Item (R$)</label>
+                <input type="text" id="totalItemPlano" value="0,00" readonly style="color: var(--success);">
+            </div>
+        </div>
+        
         <div class="row">
-            <div class="form-group"><label>Quantidade de Planos</label><input type="number" id="qtdPlano" value="1" min="1"></div>
             <div class="form-group">
                 <label>Tipo de Serviço</label>
                 <select id="servico">
@@ -153,11 +168,10 @@
                     <option value="Dados">Dados</option>
                 </select>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label>Data da Entrega</label>
-            <input type="date" id="dataEntrega">
+            <div class="form-group">
+                <label>Data da Entrega</label>
+                <input type="date" id="dataEntrega">
+            </div>
         </div>
 
         <div class="form-group">
@@ -170,8 +184,8 @@
 
         <div id="secao-parceira">
             <div class="row">
-                <div class="form-group"><label>Qtd. Pontos Parceira</label><input type="number" id="qtdParceira" value="0"></div>
-                <div class="form-group"><label>Valor por Ponto (R$)</label><input type="number" id="valorParceira" value="0"></div>
+                <div class="form-group"><label>Qtd. Pontos Parceira</label><input type="number" id="qtdParceira" value="0" oninput="atualizarValoresComercial()"></div>
+                <div class="form-group"><label>Valor por Ponto (R$)</label><input type="number" id="valorParceira" value="0" oninput="atualizarValoresComercial()"></div>
             </div>
         </div>
 
@@ -211,7 +225,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <span><b>Cliente:</b> <span id="tec_display_cliente">---</span></span>
                     <span><b>Consultor:</b> <span id="tec_display_consultor">---</span></span>
-                    <span><b>Data Arquivo:</b> <span id="tec_display_data">---</span></span>
+                    <span><b>Data do Arquivo:</b> <span id="tec_display_data">---</span></span>
                     <span><b>Itens Comercial:</b> <span id="tec_display_itens_qtd">0</span></span>
                 </div>
             </div>
@@ -238,7 +252,7 @@
                 </div>
                 <div class="form-group">
                     <label>Total Item (R$)</label>
-                    <input type="text" id="tec_total_preview" value="R$ 0,00" readonly>
+                    <input type="text" id="tec_total_preview" value="R$ 0,00" readonly style="color: var(--success);">
                 </div>
             </div>
 
@@ -295,7 +309,7 @@
 <script>
     let dadosProjeto = {
         id: null,
-        dataCriacao: null, // Novo campo
+        dataCriacao: null,
         comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
         tecnico: { itens: [] }
     };
@@ -320,14 +334,49 @@
             renderizarResumo();
         }
 
+        // LÓGICA IMPORTANTE: Se entrar na técnica, zera e espera arquivo
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
+            
+            // ZERA OS DADOS AO ENTRAR NA TÉCNICA (Como solicitado)
+            dadosProjeto = {
+                id: null,
+                dataCriacao: null,
+                comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
+                tecnico: { itens: [] }
+            };
+            
+            // Reseta a interface técnica
+            document.getElementById('area-upload').style.display = 'block';
+            document.getElementById('info-projeto-carregado').style.display = 'none';
+            document.getElementById('area-tecnica-form').style.display = 'none';
+            document.getElementById('arquivoInput').value = ''; // Limpa input file
+            
+            renderizarResumo(); // Vai limpar o resumo visualmente
         } else {
             blocoTec.style.display = 'none';
         }
     }
 
-    // --- COMERCIAL ---
+    // --- COMERCIAL: Atualização de Valores em Tempo Real ---
+    function atualizarValoresComercial() {
+        const select = document.getElementById('plano');
+        const valorUnit = parseFloat(select.value) || 0;
+        const qtd = parseInt(document.getElementById('qtdPlano').value) || 0;
+        
+        // Parceira logic
+        const temParceira = document.getElementById('parceiraCheck').value === 'sim';
+        const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
+        const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
+        const totalParceira = temParceira ? (qtdParc * valParc) : 0;
+
+        const totalItem = (valorUnit * qtd) + totalParceira;
+
+        // Atualiza campos visuais
+        document.getElementById('valorUnitPlano').value = formatarMoeda(valorUnit);
+        document.getElementById('totalItemPlano').value = formatarMoeda(totalItem);
+    }
+
     function adicionarPlanoComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
@@ -338,6 +387,7 @@
         const qtd = parseInt(document.getElementById('qtdPlano').value) || 1;
         const servico = document.getElementById('servico').value;
         const dataE = document.getElementById('dataEntrega').value;
+        
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
@@ -369,12 +419,15 @@
             dadosProjeto.comercial.itens.push(itemObj);
         }
 
+        // Reset campos
         select.value = "0";
         document.getElementById('qtdPlano').value = "1";
         document.getElementById('parceiraCheck').value = "nao";
         document.getElementById('qtdParceira').value = "0";
         document.getElementById('valorParceira').value = "0";
         toggleParceira();
+        atualizarValoresComercial(); // Reseta os previews também
+        
         renderizarResumo();
     }
 
@@ -385,7 +438,7 @@
         dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
         dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
         dadosProjeto.id = Date.now();
-        dadosProjeto.dataCriacao = new Date().toLocaleDateString('pt-BR'); // Salva Data
+        dadosProjeto.dataCriacao = new Date().toLocaleDateString('pt-BR'); // Salva Data Atual
 
         const dataStr = JSON.stringify(dadosProjeto);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -405,7 +458,7 @@
             try {
                 dadosProjeto = JSON.parse(e.target.result);
                 
-                // Preencher INFO Box com novos campos
+                // Preencher INFO Box com Consultor e Data
                 document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
                 document.getElementById('tec_display_consultor').innerText = dadosProjeto.comercial.consultor || "---";
                 document.getElementById('tec_display_data').innerText = dadosProjeto.dataCriacao || "---";
@@ -481,6 +534,7 @@
             document.getElementById('qtdParceira').value = item.qtdParc;
             document.getElementById('valorParceira').value = item.valParc;
             toggleParceira();
+            atualizarValoresComercial(); // Atualiza os previews
 
             editIndexCom = index;
             const btn = document.getElementById('btn-add-comercial');
@@ -494,7 +548,7 @@
             document.getElementById('tec_qtd').value = item.qtd;
             document.getElementById('tec_valor').value = item.valorUnit;
             document.getElementById('tec_tipo').value = item.tipo;
-            calcTotalItemTec();
+            calcTotalItemTec(); // Atualiza preview
 
             editIndexTec = index;
             const btn = document.getElementById('btn-add-tecnico');
@@ -610,7 +664,10 @@
         v = v.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
         i.value = v;
     }
-    function toggleParceira() { document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none'; }
+    function toggleParceira() {
+        document.getElementById('secao-parceira').style.display = document.getElementById('parceiraCheck').value === 'sim' ? 'block' : 'none';
+        atualizarValoresComercial();
+    }
     function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
     function formatarDataBR(d) { return d ? d.split('-').reverse().join('/') : "---"; }
 </script>
