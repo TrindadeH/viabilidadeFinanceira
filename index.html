@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado (Final v5)</title>
+    <title>Viabilidade Financeira - Integrado</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -108,8 +108,8 @@
 <div class="container" id="main-container">
     
     <div id="tela-inicial" class="screen active" style="width: 100%; max-width: 800px;">
-        <h1 class="app-title">Sistema CRC</h1>
-        <p style="text-align: center; color: #777;">Selecione o módulo para iniciar</p>
+        <h1 class="app-title">Viabilidade Financeira</h1>
+        <p style="text-align: center; color: #777;">Selecione o setor para iniciar</p>
         
         <div class="dashboard-grid">
             <div class="menu-btn" onclick="irPara('tela-comercial')">
@@ -130,7 +130,7 @@
 
         <div class="form-group">
             <label>Cliente/Projeto</label>
-            <input type="text" id="projeto" placeholder="Ex: Ailos">
+            <input type="text" id="projeto">
         </div>
         <div class="row">
             <div class="form-group">
@@ -348,7 +348,7 @@
 
     let editIndexCom = null;
     let editIndexTec = null;
-    let modoCompletoGlobal = false; // Armazena estado para o download do modal
+    let modoCompletoGlobal = false;
 
     function irPara(telaId) {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -623,12 +623,10 @@
 
     // --- MODAL DE PREVIEW E LÓGICA DE DOWNLOAD ---
     
-    // Função auxiliar para gerar o HTML do contrato (Usada tanto no preview quanto no download)
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
         
-        // Se estiver no modo preview/download no comercial, atualiza dados antes
         if(!completo) {
             com.cliente = document.getElementById('projeto').value || "Cliente";
             com.cnpj = document.getElementById('cnpj').value;
@@ -640,7 +638,6 @@
         const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // Tabelas HTML
         const linhasCom = com.itens.map(i => `
             <tr>
                 <td style="border:1px solid #ccc; padding:8px;">${i.nome}</td>
@@ -674,6 +671,7 @@
             </table>
         ` : '';
 
+        // *** REMOVIDO BLOCO DE ASSINATURAS ***
         return `
             <div style="font-family:Arial, sans-serif; font-size:11pt; line-height:1.5; color:#000;">
                 <h1 style="text-align:center; font-size:16pt; text-transform:uppercase; margin-bottom:20px; color:#333; border-bottom:2px solid #333; padding-bottom:10px;">VIABILIDADE FINANCEIRA</h1>
@@ -720,20 +718,11 @@
                     <span style="font-size:12pt; font-weight:bold; margin-right:20px;">INVESTIMENTO TOTAL PREVISTO:</span>
                     <span style="font-size:14pt; font-weight:bold; color:#000;">${formatarMoeda(totalGeral)}</span>
                 </div>
-
-                <div style="margin-top:80px; text-align:center; font-size:10pt;">
-                    <div style="display:inline-block; width:40%; border-top:1px solid #000; margin-right:5%; padding-top:5px;">
-                        ${com.consultor}<br><b>Consultor Responsável</b>
-                    </div>
-                    <div style="display:inline-block; width:40%; border-top:1px solid #000; padding-top:5px;">
-                        ${com.cliente}<br><b>De acordo (Cliente)</b>
-                    </div>
-                </div>
             </div>`;
     }
 
     function abrirPreview(completo) {
-        modoCompletoGlobal = completo; // Salva estado para o botão baixar dentro do modal
+        modoCompletoGlobal = completo; 
         const html = montarHTMLDocumento(completo);
         document.getElementById('papelSimulacao').innerHTML = html;
         document.getElementById('modalPreview').style.display = 'flex';
@@ -744,7 +733,6 @@
     }
 
     function baixarDoModal() {
-        // Gera o HTML final para o arquivo
         const htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'></head>
@@ -759,10 +747,10 @@
         link.download = `Viabilidade_${dadosProjeto.comercial.cliente}_${sufixo}.doc`;
         link.click();
         
-        fecharPreview(); // Fecha após baixar
+        fecharPreview(); 
     }
 
-    // Mantido para compatibilidade, caso chame direto sem preview
+    // Mantido para compatibilidade
     function gerarDocumentoWord(completo) {
         abrirPreview(completo);
     }
