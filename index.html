@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v6)</title>
+    <title>Viabilidade Financeira - Integrado</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -401,7 +401,6 @@
         const temItens = dadosProjeto.comercial.itens.length > 0;
 
         const btn = document.getElementById('btn-export-comercial');
-        // Habilita se tudo preenchido E tiver itens
         if (p && c && cons && temItens) {
             btn.disabled = false;
         } else {
@@ -412,7 +411,6 @@
     function validarTecnico() {
         const temItens = dadosProjeto.tecnico.itens.length > 0;
         const btn = document.getElementById('btn-generate-complete');
-        // Habilita apenas se tiver itens na lista técnica
         if (temItens) {
             btn.disabled = false;
         } else {
@@ -482,7 +480,7 @@
         toggleParceira();
         atualizarValoresComercial(); 
         renderizarResumo();
-        validarComercial(); // Chama validação
+        validarComercial(); 
     }
 
     function exportarArquivoProjeto() {
@@ -517,7 +515,7 @@
                 document.getElementById('info-projeto-carregado').style.display = 'block';
                 document.getElementById('area-tecnica-form').style.display = 'block';
                 renderizarResumo();
-                validarTecnico(); // Valida ao carregar
+                validarTecnico(); 
             } catch (err) {
                 alert("Erro ao ler arquivo.");
             }
@@ -563,7 +561,7 @@
         document.getElementById('tec_valor').value = "0";
         document.getElementById('tec_total_preview').value = "R$ 0,00";
         renderizarResumo();
-        validarTecnico(); // Chama validação
+        validarTecnico(); 
     }
 
     function editarItem(tipo, index) {
@@ -612,8 +610,8 @@
             if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
             if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
             renderizarResumo();
-            validarComercial(); // Revalida
-            validarTecnico(); // Revalida
+            validarComercial(); 
+            validarTecnico(); 
         }
     }
 
@@ -711,6 +709,7 @@
             </table>
         ` : '';
 
+        // BLOCO DE ASSINATURAS REMOVIDO!
         return `
             <div style="font-family:Arial, sans-serif; font-size:11pt; line-height:1.5; color:#000;">
                 <h1 style="text-align:center; font-size:16pt; text-transform:uppercase; margin-bottom:20px; color:#333; border-bottom:2px solid #333; padding-bottom:10px;">VIABILIDADE FINANCEIRA</h1>
@@ -757,15 +756,6 @@
                     <span style="font-size:12pt; font-weight:bold; margin-right:20px;">INVESTIMENTO TOTAL PREVISTO:</span>
                     <span style="font-size:14pt; font-weight:bold; color:#000;">${formatarMoeda(totalGeral)}</span>
                 </div>
-
-                <div style="margin-top:80px; text-align:center; font-size:10pt;">
-                    <div style="display:inline-block; width:40%; border-top:1px solid #000; margin-right:5%; padding-top:5px;">
-                        ${com.consultor}<br><b>Consultor Responsável</b>
-                    </div>
-                    <div style="display:inline-block; width:40%; border-top:1px solid #000; padding-top:5px;">
-                        ${com.cliente}<br><b>De acordo (Cliente)</b>
-                    </div>
-                </div>
             </div>`;
     }
 
@@ -798,10 +788,7 @@
         fecharPreview(); 
     }
 
-    function gerarDocumentoCompleto() {
-        abrirPreview(true);
-    }
-
+    // Mantido para compatibilidade
     function gerarDocumentoWord(completo) {
         abrirPreview(completo);
     }
