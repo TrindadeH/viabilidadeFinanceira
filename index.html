@@ -2,14 +2,13 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado</title>
+    <title>Viabilidade Financeira - Integrado (Final v6)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
         :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; --preview-bg: #525659; }
         
         body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
-        
         .container { display: flex; gap: 25px; width: 100%; max-width: 1200px; padding: 40px 20px; align-items: flex-start; justify-content: center; }
         
         /* CARDS */
@@ -31,7 +30,6 @@
         /* FORMULÁRIOS */
         h1.app-title { text-align: center; color: var(--accent); margin-bottom: 10px; }
         h2 { border-bottom: 1px solid #eee; padding-bottom: 15px; color: #333; margin-top: 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .section-title { font-size: 14px; color: #666; text-transform: uppercase; border-left: 4px solid #333; padding-left: 10px; margin: 0; font-weight: bold; }
 
@@ -46,6 +44,15 @@
         /* BOTÕES */
         .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
         
+        /* ESTILO PARA BOTÃO DESABILITADO */
+        button:disabled {
+            background-color: #cccccc !important;
+            color: #666 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
         .btn-add-compact { 
             background-color: var(--success); color: white; border: none; 
             padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; 
@@ -57,7 +64,6 @@
 
         .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         
-        /* Botão de Visualização */
         .btn-preview { background: #6f42c1; color: white; margin-top: 10px; padding: 15px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-preview:hover { background: #5a32a3; }
         
@@ -70,33 +76,27 @@
         .btn-upload { background: var(--info); color: white; margin-top: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
         .btn-upload:hover { background: #138496; }
 
-        /* MODAL DE PREVIEW */
+        /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: flex-start; z-index: 1000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .modal-content { background: var(--preview-bg); width: 100%; max-width: 900px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; margin-top: 20px; margin-bottom: 20px; }
         .modal-header { background: #333; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
         .modal-body { padding: 30px; background: #525659; display: flex; justify-content: center; overflow-y: auto; max-height: 70vh; }
-        
-        /* Folha A4 Simulada */
         .paper-a4 { background: white; width: 210mm; min-height: 297mm; padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); font-family: Arial, sans-serif; font-size: 11pt; color: #000; box-sizing: border-box; }
-        
         .modal-footer { background: #fff; padding: 15px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #ddd; }
 
-        /* RESUMO LATERAL */
+        /* RESUMO */
         #lista-resumo { list-style: none; padding: 0; margin-top: 20px; border-top: 1px solid #eee; }
         .item-resumo { padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .item-info b { color: #333; font-size: 14px; display: block; }
         .item-info span { color: #777; font-size: 11px; }
-        
         .valor-total-container { margin-top: 20px; }
         .lbl-total { font-size: 11px; font-weight: bold; color: #777; text-transform: uppercase; display: block; }
         .val-total { font-size: 28px; font-weight: bold; color: var(--success); }
-
         .acoes-item { display: flex; gap: 5px; align-items: center; }
         .btn-icon { background: none; border: none; cursor: pointer; color: #999; font-size: 14px; padding: 5px; transition: 0.2s; }
         .btn-icon:hover { color: var(--primary); transform: scale(1.1); }
         .btn-icon.edit:hover { color: var(--warning); }
         .btn-icon.del:hover { color: var(--danger); }
-
         #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
         .screen { display: none; }
         .screen.active { display: block; }
@@ -130,14 +130,14 @@
 
         <div class="form-group">
             <label>Cliente/Projeto</label>
-            <input type="text" id="projeto">
+            <input type="text" id="projeto" oninput="validarComercial()">
         </div>
         <div class="row">
             <div class="form-group">
                 <label>CNPJ</label>
-                <input type="text" id="cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="mascaraCNPJ(this)">
+                <input type="text" id="cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="mascaraCNPJ(this); validarComercial()">
             </div>
-            <div class="form-group"><label>Consultor</label><input type="text" id="consultor"></div>
+            <div class="form-group"><label>Consultor</label><input type="text" id="consultor" oninput="validarComercial()"></div>
         </div>
 
         <div class="section-header">
@@ -207,7 +207,7 @@
 
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-        <button class="btn btn-upload" onclick="exportarArquivoProjeto()">
+        <button id="btn-export-comercial" class="btn btn-upload" onclick="exportarArquivoProjeto()" disabled>
             <i class="fa-solid fa-download"></i> SALVAR ARQUIVO PARA EQUIPE TÉCNICA
         </button>
         
@@ -289,6 +289,10 @@
             
             <button class="btn btn-preview" onclick="abrirPreview(true)">
                 <i class="fa-solid fa-eye"></i> PRÉ-VISUALIZAR DOCUMENTO
+            </button>
+
+            <button id="btn-generate-complete" class="btn btn-save-tec" onclick="gerarDocumentoCompleto()" disabled>
+                <i class="fa-solid fa-file-word"></i> GERAR DOCUMENTO COMPLETO (.DOCX)
             </button>
         </div>
 
@@ -383,6 +387,37 @@
         } else {
             blocoTec.style.display = 'none';
         }
+        
+        // Garante validação inicial ao trocar de tela
+        validarComercial();
+        validarTecnico();
+    }
+
+    // --- VALIDAÇÃO ---
+    function validarComercial() {
+        const p = document.getElementById('projeto').value.trim();
+        const c = document.getElementById('cnpj').value.trim();
+        const cons = document.getElementById('consultor').value.trim();
+        const temItens = dadosProjeto.comercial.itens.length > 0;
+
+        const btn = document.getElementById('btn-export-comercial');
+        // Habilita se tudo preenchido E tiver itens
+        if (p && c && cons && temItens) {
+            btn.disabled = false;
+        } else {
+            btn.disabled = true;
+        }
+    }
+
+    function validarTecnico() {
+        const temItens = dadosProjeto.tecnico.itens.length > 0;
+        const btn = document.getElementById('btn-generate-complete');
+        // Habilita apenas se tiver itens na lista técnica
+        if (temItens) {
+            btn.disabled = false;
+        } else {
+            btn.disabled = true;
+        }
     }
 
     // --- COMERCIAL: Atualização ---
@@ -447,6 +482,7 @@
         toggleParceira();
         atualizarValoresComercial(); 
         renderizarResumo();
+        validarComercial(); // Chama validação
     }
 
     function exportarArquivoProjeto() {
@@ -481,6 +517,7 @@
                 document.getElementById('info-projeto-carregado').style.display = 'block';
                 document.getElementById('area-tecnica-form').style.display = 'block';
                 renderizarResumo();
+                validarTecnico(); // Valida ao carregar
             } catch (err) {
                 alert("Erro ao ler arquivo.");
             }
@@ -526,6 +563,7 @@
         document.getElementById('tec_valor').value = "0";
         document.getElementById('tec_total_preview').value = "R$ 0,00";
         renderizarResumo();
+        validarTecnico(); // Chama validação
     }
 
     function editarItem(tipo, index) {
@@ -574,6 +612,8 @@
             if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
             if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
             renderizarResumo();
+            validarComercial(); // Revalida
+            validarTecnico(); // Revalida
         }
     }
 
@@ -671,7 +711,6 @@
             </table>
         ` : '';
 
-        // *** REMOVIDO BLOCO DE ASSINATURAS ***
         return `
             <div style="font-family:Arial, sans-serif; font-size:11pt; line-height:1.5; color:#000;">
                 <h1 style="text-align:center; font-size:16pt; text-transform:uppercase; margin-bottom:20px; color:#333; border-bottom:2px solid #333; padding-bottom:10px;">VIABILIDADE FINANCEIRA</h1>
@@ -718,6 +757,15 @@
                     <span style="font-size:12pt; font-weight:bold; margin-right:20px;">INVESTIMENTO TOTAL PREVISTO:</span>
                     <span style="font-size:14pt; font-weight:bold; color:#000;">${formatarMoeda(totalGeral)}</span>
                 </div>
+
+                <div style="margin-top:80px; text-align:center; font-size:10pt;">
+                    <div style="display:inline-block; width:40%; border-top:1px solid #000; margin-right:5%; padding-top:5px;">
+                        ${com.consultor}<br><b>Consultor Responsável</b>
+                    </div>
+                    <div style="display:inline-block; width:40%; border-top:1px solid #000; padding-top:5px;">
+                        ${com.cliente}<br><b>De acordo (Cliente)</b>
+                    </div>
+                </div>
             </div>`;
     }
 
@@ -750,7 +798,10 @@
         fecharPreview(); 
     }
 
-    // Mantido para compatibilidade
+    function gerarDocumentoCompleto() {
+        abrirPreview(true);
+    }
+
     function gerarDocumentoWord(completo) {
         abrirPreview(completo);
     }
