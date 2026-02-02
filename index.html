@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado (Final v3)</title>
+    <title>Sistema CRC - Integrado (Final v4)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -38,7 +38,6 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 12px; color: #555; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; background: #fff; }
-        /* Campos Readonly com visual diferente */
         input[readonly] { background-color: #f0f0f0; color: #555; font-weight: bold; border-color: #ccc; cursor: not-allowed; }
         
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -334,45 +333,37 @@
             renderizarResumo();
         }
 
-        // LÓGICA IMPORTANTE: Se entrar na técnica, zera e espera arquivo
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
             
-            // ZERA OS DADOS AO ENTRAR NA TÉCNICA (Como solicitado)
+            // ZERA E RESET
             dadosProjeto = {
                 id: null,
                 dataCriacao: null,
                 comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
                 tecnico: { itens: [] }
             };
-            
-            // Reseta a interface técnica
             document.getElementById('area-upload').style.display = 'block';
             document.getElementById('info-projeto-carregado').style.display = 'none';
             document.getElementById('area-tecnica-form').style.display = 'none';
-            document.getElementById('arquivoInput').value = ''; // Limpa input file
-            
-            renderizarResumo(); // Vai limpar o resumo visualmente
+            document.getElementById('arquivoInput').value = '';
+            renderizarResumo();
         } else {
             blocoTec.style.display = 'none';
         }
     }
 
-    // --- COMERCIAL: Atualização de Valores em Tempo Real ---
+    // --- COMERCIAL: Atualização em Tempo Real ---
     function atualizarValoresComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
         const qtd = parseInt(document.getElementById('qtdPlano').value) || 0;
-        
-        // Parceira logic
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
         const totalParceira = temParceira ? (qtdParc * valParc) : 0;
-
         const totalItem = (valorUnit * qtd) + totalParceira;
 
-        // Atualiza campos visuais
         document.getElementById('valorUnitPlano').value = formatarMoeda(valorUnit);
         document.getElementById('totalItemPlano').value = formatarMoeda(totalItem);
     }
@@ -380,18 +371,15 @@
     function adicionarPlanoComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
-        
         if (valorUnit === 0) return alert("Selecione um plano válido.");
 
         let nomePlano = select.options[select.selectedIndex].text.split(' - ')[0];
         const qtd = parseInt(document.getElementById('qtdPlano').value) || 1;
         const servico = document.getElementById('servico').value;
         const dataE = document.getElementById('dataEntrega').value;
-        
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
-
         const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
         const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
 
@@ -419,26 +407,23 @@
             dadosProjeto.comercial.itens.push(itemObj);
         }
 
-        // Reset campos
         select.value = "0";
         document.getElementById('qtdPlano').value = "1";
         document.getElementById('parceiraCheck').value = "nao";
         document.getElementById('qtdParceira').value = "0";
         document.getElementById('valorParceira').value = "0";
         toggleParceira();
-        atualizarValoresComercial(); // Reseta os previews também
-        
+        atualizarValoresComercial(); 
         renderizarResumo();
     }
 
     function exportarArquivoProjeto() {
         if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de salvar.");
-
         dadosProjeto.comercial.cliente = document.getElementById('projeto').value || "Cliente";
         dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
         dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
         dadosProjeto.id = Date.now();
-        dadosProjeto.dataCriacao = new Date().toLocaleDateString('pt-BR'); // Salva Data Atual
+        dadosProjeto.dataCriacao = new Date().toLocaleDateString('pt-BR'); 
 
         const dataStr = JSON.stringify(dadosProjeto);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -452,22 +437,17 @@
     function carregarArquivo(input) {
         const file = input.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 dadosProjeto = JSON.parse(e.target.result);
-                
-                // Preencher INFO Box com Consultor e Data
                 document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
                 document.getElementById('tec_display_consultor').innerText = dadosProjeto.comercial.consultor || "---";
                 document.getElementById('tec_display_data').innerText = dadosProjeto.dataCriacao || "---";
                 document.getElementById('tec_display_itens_qtd').innerText = dadosProjeto.comercial.itens.length;
-                
                 document.getElementById('area-upload').style.display = 'none';
                 document.getElementById('info-projeto-carregado').style.display = 'block';
                 document.getElementById('area-tecnica-form').style.display = 'block';
-
                 renderizarResumo();
             } catch (err) {
                 alert("Erro ao ler arquivo.");
@@ -485,7 +465,6 @@
     function adicionarItemTecnico() {
         const nome = document.getElementById('tec_equipamento').value;
         if(!nome) return alert("Digite o nome do equipamento.");
-
         const qtd = parseInt(document.getElementById('tec_qtd').value) || 1;
         const valorUnit = parseFloat(document.getElementById('tec_valor').value) || 0;
         const tipo = document.getElementById('tec_tipo').value;
@@ -517,6 +496,126 @@
         renderizarResumo();
     }
 
+    // --- GERAR WORD PROFISSIONAL ---
+    function gerarDocumentoCompleto() { gerarDocumentoWord(true); }
+
+    function gerarDocumentoWord(completo) {
+        const com = dadosProjeto.comercial;
+        const tec = dadosProjeto.tecnico;
+        if(!completo) {
+            com.cliente = document.getElementById('projeto').value || "Cliente";
+            com.cnpj = document.getElementById('cnpj').value;
+            com.consultor = document.getElementById('consultor').value;
+        }
+
+        const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
+        const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
+        const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
+        const hoje = new Date().toLocaleDateString('pt-BR');
+
+        // Gera Linhas com Coluna de Valor Unitário
+        const linhasCom = com.itens.map(i => `
+            <tr>
+                <td>${i.nome}</td>
+                <td style="text-align: center;">${i.qtd}</td>
+                <td style="text-align: right;">${formatarMoeda(i.valorUnit)}</td>
+                <td style="text-align: right;">${formatarMoeda(i.total)}</td>
+            </tr>`).join('');
+
+        const linhasTec = tec.itens.map(i => `
+            <tr>
+                <td>${i.nome} <br><span style="font-size:9pt; color:#666;">(Equipe: ${i.tipo})</span></td>
+                <td style="text-align: center;">${i.qtd}</td>
+                <td style="text-align: right;">${formatarMoeda(i.valorUnit)}</td>
+                <td style="text-align: right;">${formatarMoeda(i.total)}</td>
+            </tr>`).join('');
+
+        const blocoTecnico = completo ? `
+            <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">3. ESCOPO TÉCNICO</h2>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                <thead>
+                    <tr style="background:#f2f2f2;">
+                        <th style="border:1px solid #ccc; padding:8px; text-align:left;">Item / Descrição</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:10%; text-align:center;">Qtd.</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Valor Unit.</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${linhasTec.length ? linhasTec : '<tr><td colspan="4" style="text-align:center; border:1px solid #ccc; padding:8px;">Nenhum item técnico.</td></tr>'}
+                </tbody>
+            </table>
+        ` : '';
+
+        const html = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
+        <body style="font-family:Arial, sans-serif; font-size:11pt; line-height:1.5;">
+            
+            <h1 style="text-align:center; font-size:16pt; text-transform:uppercase; margin-bottom:20px; color:#333; border-bottom:2px solid #333; padding-bottom:10px;">VIABILIDADE FINANCEIRA</h1>
+            <p style="text-align:right; font-size:9pt; color:#666;">Data de Emissão: ${hoje}</p>
+
+            <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">1. IDENTIFICAÇÃO DO CLIENTE</h2>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                <tr>
+                    <th style="border:1px solid #ccc; padding:8px; width:25%; background:#f2f2f2; text-align:left;">Cliente</th>
+                    <td style="border:1px solid #ccc; padding:8px;">${com.cliente}</td>
+                    <th style="border:1px solid #ccc; padding:8px; width:20%; background:#f2f2f2; text-align:left;">CNPJ</th>
+                    <td style="border:1px solid #ccc; padding:8px;">${com.cnpj}</td>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Consultor</th>
+                    <td style="border:1px solid #ccc; padding:8px;">${com.consultor}</td>
+                    <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Previsão Entrega</th>
+                    <td style="border:1px solid #ccc; padding:8px;">${dataRef}</td>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Tipo de Serviço</th>
+                    <td colspan="3" style="border:1px solid #ccc; padding:8px;">${servicoRef}</td>
+                </tr>
+            </table>
+
+            <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">2. PROPOSTA COMERCIAL</h2>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                <thead>
+                    <tr style="background:#f2f2f2;">
+                        <th style="border:1px solid #ccc; padding:8px; text-align:left;">Item / Descrição</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:10%; text-align:center;">Qtd.</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Valor Unit.</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${linhasCom}
+                </tbody>
+            </table>
+
+            ${blocoTecnico}
+
+            <div style="margin-top:30px; border:2px solid #333; padding:15px; background:#f9f9f9; text-align:right;">
+                <span style="font-size:12pt; font-weight:bold; margin-right:20px;">INVESTIMENTO TOTAL PREVISTO:</span>
+                <span style="font-size:14pt; font-weight:bold; color:#000;">${formatarMoeda(totalGeral)}</span>
+            </div>
+
+            <div style="margin-top:80px; text-align:center; font-size:10pt;">
+                <div style="display:inline-block; width:40%; border-top:1px solid #000; margin-right:5%; padding-top:5px;">
+                    ${com.consultor}<br><b>Consultor Responsável</b>
+                </div>
+                <div style="display:inline-block; width:40%; border-top:1px solid #000; padding-top:5px;">
+                    ${com.cliente}<br><b>De acordo (Cliente)</b>
+                </div>
+            </div>
+
+        </body></html>`;
+
+        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Viabilidade_Financeira_${com.cliente}.doc`;
+        link.click();
+    }
+
+    // --- UTILITÁRIOS & EDIÇÃO (Mantidos da versão anterior) ---
     function editarItem(tipo, index) {
         if (tipo === 'com') {
             const item = dadosProjeto.comercial.itens[index];
@@ -534,7 +633,7 @@
             document.getElementById('qtdParceira').value = item.qtdParc;
             document.getElementById('valorParceira').value = item.valParc;
             toggleParceira();
-            atualizarValoresComercial(); // Atualiza os previews
+            atualizarValoresComercial();
 
             editIndexCom = index;
             const btn = document.getElementById('btn-add-comercial');
@@ -548,7 +647,7 @@
             document.getElementById('tec_qtd').value = item.qtd;
             document.getElementById('tec_valor').value = item.valorUnit;
             document.getElementById('tec_tipo').value = item.tipo;
-            calcTotalItemTec(); // Atualiza preview
+            calcTotalItemTec();
 
             editIndexTec = index;
             const btn = document.getElementById('btn-add-tecnico');
@@ -559,7 +658,7 @@
     }
 
     function removerItem(tipo, index) {
-        if(confirm("Deseja realmente remover este item?")) {
+        if(confirm("Remover este item?")) {
             if(tipo === 'com') dadosProjeto.comercial.itens.splice(index, 1);
             if(tipo === 'tec') dadosProjeto.tecnico.itens.splice(index, 1);
             renderizarResumo();
@@ -608,55 +707,6 @@
         }
 
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
-    }
-
-    function gerarDocumentoCompleto() { gerarDocumentoWord(true); }
-
-    function gerarDocumentoWord(completo) {
-        const com = dadosProjeto.comercial;
-        const tec = dadosProjeto.tecnico;
-        
-        if(!completo) {
-            com.cliente = document.getElementById('projeto').value || "Cliente";
-            com.cnpj = document.getElementById('cnpj').value;
-            com.consultor = document.getElementById('consultor').value;
-        }
-
-        const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
-        const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
-        const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
-
-        const linhasCom = com.itens.map(i => `<tr><td style="padding:5px;">${i.nome}</td><td align="center">${i.qtd}</td><td align="right">${formatarMoeda(i.total)}</td></tr>`).join('');
-        const linhasTec = tec.itens.map(i => `<tr><td style="padding:5px;">${i.nome} (${i.tipo})</td><td align="center">${i.qtd}</td><td align="right">${formatarMoeda(i.valorUnit)}</td><td align="right">${formatarMoeda(i.total)}</td></tr>`).join('');
-
-        const blocoTecnico = completo ? `
-            <h3>3. ESCOPO TÉCNICO</h3>
-            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse:collapse;">
-                <tr style="background:#eee;"><td><b>Item</b></td><td><b>Qtd</b></td><td><b>Unit.</b></td><td><b>Total</b></td></tr>
-                ${linhasTec.length ? linhasTec : '<tr><td colspan="4" align="center">Vazio</td></tr>'}
-            </table>` : '';
-
-        const html = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <body style="font-family:Arial;">
-            <h2>RESUMO CRC</h2>
-            <h3>1. CLIENTE</h3>
-            <p>Cliente: ${com.cliente} | CNPJ: ${com.cnpj} | Consultor: ${com.consultor}</p>
-            <h3>2. COMERCIAL</h3>
-            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="border-collapse:collapse;">
-                <tr style="background:#eee;"><td><b>Item</b></td><td><b>Qtd</b></td><td><b>Total</b></td></tr>
-                ${linhasCom}
-            </table>
-            ${blocoTecnico}
-            <br>
-            <div style="text-align:right; font-size:16pt; font-weight:bold;">TOTAL: ${formatarMoeda(totalGeral)}</div>
-        </body></html>`;
-
-        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `CRC_${com.cliente}.doc`;
-        link.click();
     }
 
     function mascaraCNPJ(i) {
