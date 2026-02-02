@@ -2,11 +2,11 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema CRC - Integrado (Final v4)</title>
+    <title>Sistema CRC - Integrado (Final v5)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
-        :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; }
+        :root { --primary: #333; --accent: #2c3e50; --bg: #f4f6f8; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; --preview-bg: #525659; }
         
         body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         
@@ -16,7 +16,7 @@
         .card { background: white; padding: 35px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; animation: fadeIn 0.3s ease; }
         .resumo-card { background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 350px; position: sticky; top: 20px; min-height: 200px; display: none; }
 
-        /* DASHBOARD INICIAL */
+        /* DASHBOARD */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 50px; }
         .menu-btn {
             background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 50px 30px;
@@ -43,7 +43,7 @@
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
 
-        /* BOTÕES GERAIS */
+        /* BOTÕES */
         .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
         
         .btn-add-compact { 
@@ -57,8 +57,9 @@
 
         .btn-add-inline { background-color: var(--success); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         
-        .btn-generate { background: #333; color: white; margin-top: 10px; padding: 15px; font-size: 14px; }
-        .btn-generate:hover { background: #000; }
+        /* Botão de Visualização */
+        .btn-preview { background: #6f42c1; color: white; margin-top: 10px; padding: 15px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-preview:hover { background: #5a32a3; }
         
         .btn-save-tec { background: var(--warning); color: #333; margin-top: 20px; padding: 15px; font-size: 14px; }
         .btn-save-tec:hover { background: #ffca2c; }
@@ -68,6 +69,17 @@
 
         .btn-upload { background: var(--info); color: white; margin-top: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
         .btn-upload:hover { background: #138496; }
+
+        /* MODAL DE PREVIEW */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: flex-start; z-index: 1000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: var(--preview-bg); width: 100%; max-width: 900px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; margin-top: 20px; margin-bottom: 20px; }
+        .modal-header { background: #333; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 30px; background: #525659; display: flex; justify-content: center; overflow-y: auto; max-height: 70vh; }
+        
+        /* Folha A4 Simulada */
+        .paper-a4 { background: white; width: 210mm; min-height: 297mm; padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); font-family: Arial, sans-serif; font-size: 11pt; color: #000; box-sizing: border-box; }
+        
+        .modal-footer { background: #fff; padding: 15px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #ddd; }
 
         /* RESUMO LATERAL */
         #lista-resumo { list-style: none; padding: 0; margin-top: 20px; border-top: 1px solid #eee; }
@@ -86,7 +98,6 @@
         .btn-icon.del:hover { color: var(--danger); }
 
         #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
-        
         .screen { display: none; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -200,7 +211,10 @@
             <i class="fa-solid fa-download"></i> SALVAR ARQUIVO PARA EQUIPE TÉCNICA
         </button>
         
-        <button class="btn btn-generate" onclick="gerarDocumentoWord(false)">APENAS GERAR WORD (PRELIMINAR)</button>
+        <button class="btn btn-preview" onclick="abrirPreview(false)">
+            <i class="fa-solid fa-eye"></i> PRÉ-VISUALIZAR DOCUMENTO
+        </button>
+        
         <button class="btn btn-back" onclick="irPara('tela-inicial')">VOLTAR AO MENU</button>
     </div>
 
@@ -272,8 +286,9 @@
             </div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-            <button class="btn btn-save-tec" onclick="gerarDocumentoCompleto()">
-                <i class="fa-solid fa-file-word"></i> GERAR DOCUMENTO COMPLETO
+            
+            <button class="btn btn-preview" onclick="abrirPreview(true)">
+                <i class="fa-solid fa-eye"></i> PRÉ-VISUALIZAR DOCUMENTO
             </button>
         </div>
 
@@ -305,6 +320,24 @@
     </div>
 </div>
 
+<div id="modalPreview" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin:0;">Simulação do Documento (Visualização)</h3>
+            <span style="cursor:pointer; font-size:24px;" onclick="fecharPreview()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="papelSimulacao" class="paper-a4"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" style="background:#6c757d; color:white; width:auto;" onclick="fecharPreview()">Fechar</button>
+            <button class="btn" style="background:var(--success); color:white; width:auto;" onclick="baixarDoModal()">
+                <i class="fa-solid fa-download"></i> Baixar Word (.doc)
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     let dadosProjeto = {
         id: null,
@@ -315,6 +348,7 @@
 
     let editIndexCom = null;
     let editIndexTec = null;
+    let modoCompletoGlobal = false; // Armazena estado para o download do modal
 
     function irPara(telaId) {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -335,8 +369,6 @@
 
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
-            
-            // ZERA E RESET
             dadosProjeto = {
                 id: null,
                 dataCriacao: null,
@@ -353,7 +385,7 @@
         }
     }
 
-    // --- COMERCIAL: Atualização em Tempo Real ---
+    // --- COMERCIAL: Atualização ---
     function atualizarValoresComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
@@ -496,126 +528,6 @@
         renderizarResumo();
     }
 
-    // --- GERAR WORD PROFISSIONAL ---
-    function gerarDocumentoCompleto() { gerarDocumentoWord(true); }
-
-    function gerarDocumentoWord(completo) {
-        const com = dadosProjeto.comercial;
-        const tec = dadosProjeto.tecnico;
-        if(!completo) {
-            com.cliente = document.getElementById('projeto').value || "Cliente";
-            com.cnpj = document.getElementById('cnpj').value;
-            com.consultor = document.getElementById('consultor').value;
-        }
-
-        const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
-        const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
-        const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
-        const hoje = new Date().toLocaleDateString('pt-BR');
-
-        // Gera Linhas com Coluna de Valor Unitário
-        const linhasCom = com.itens.map(i => `
-            <tr>
-                <td>${i.nome}</td>
-                <td style="text-align: center;">${i.qtd}</td>
-                <td style="text-align: right;">${formatarMoeda(i.valorUnit)}</td>
-                <td style="text-align: right;">${formatarMoeda(i.total)}</td>
-            </tr>`).join('');
-
-        const linhasTec = tec.itens.map(i => `
-            <tr>
-                <td>${i.nome} <br><span style="font-size:9pt; color:#666;">(Equipe: ${i.tipo})</span></td>
-                <td style="text-align: center;">${i.qtd}</td>
-                <td style="text-align: right;">${formatarMoeda(i.valorUnit)}</td>
-                <td style="text-align: right;">${formatarMoeda(i.total)}</td>
-            </tr>`).join('');
-
-        const blocoTecnico = completo ? `
-            <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">3. ESCOPO TÉCNICO</h2>
-            <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
-                <thead>
-                    <tr style="background:#f2f2f2;">
-                        <th style="border:1px solid #ccc; padding:8px; text-align:left;">Item / Descrição</th>
-                        <th style="border:1px solid #ccc; padding:8px; width:10%; text-align:center;">Qtd.</th>
-                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Valor Unit.</th>
-                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${linhasTec.length ? linhasTec : '<tr><td colspan="4" style="text-align:center; border:1px solid #ccc; padding:8px;">Nenhum item técnico.</td></tr>'}
-                </tbody>
-            </table>
-        ` : '';
-
-        const html = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body style="font-family:Arial, sans-serif; font-size:11pt; line-height:1.5;">
-            
-            <h1 style="text-align:center; font-size:16pt; text-transform:uppercase; margin-bottom:20px; color:#333; border-bottom:2px solid #333; padding-bottom:10px;">VIABILIDADE FINANCEIRA</h1>
-            <p style="text-align:right; font-size:9pt; color:#666;">Data de Emissão: ${hoje}</p>
-
-            <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">1. IDENTIFICAÇÃO DO CLIENTE</h2>
-            <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
-                <tr>
-                    <th style="border:1px solid #ccc; padding:8px; width:25%; background:#f2f2f2; text-align:left;">Cliente</th>
-                    <td style="border:1px solid #ccc; padding:8px;">${com.cliente}</td>
-                    <th style="border:1px solid #ccc; padding:8px; width:20%; background:#f2f2f2; text-align:left;">CNPJ</th>
-                    <td style="border:1px solid #ccc; padding:8px;">${com.cnpj}</td>
-                </tr>
-                <tr>
-                    <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Consultor</th>
-                    <td style="border:1px solid #ccc; padding:8px;">${com.consultor}</td>
-                    <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Previsão Entrega</th>
-                    <td style="border:1px solid #ccc; padding:8px;">${dataRef}</td>
-                </tr>
-                <tr>
-                    <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Tipo de Serviço</th>
-                    <td colspan="3" style="border:1px solid #ccc; padding:8px;">${servicoRef}</td>
-                </tr>
-            </table>
-
-            <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">2. PROPOSTA COMERCIAL</h2>
-            <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
-                <thead>
-                    <tr style="background:#f2f2f2;">
-                        <th style="border:1px solid #ccc; padding:8px; text-align:left;">Item / Descrição</th>
-                        <th style="border:1px solid #ccc; padding:8px; width:10%; text-align:center;">Qtd.</th>
-                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Valor Unit.</th>
-                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${linhasCom}
-                </tbody>
-            </table>
-
-            ${blocoTecnico}
-
-            <div style="margin-top:30px; border:2px solid #333; padding:15px; background:#f9f9f9; text-align:right;">
-                <span style="font-size:12pt; font-weight:bold; margin-right:20px;">INVESTIMENTO TOTAL PREVISTO:</span>
-                <span style="font-size:14pt; font-weight:bold; color:#000;">${formatarMoeda(totalGeral)}</span>
-            </div>
-
-            <div style="margin-top:80px; text-align:center; font-size:10pt;">
-                <div style="display:inline-block; width:40%; border-top:1px solid #000; margin-right:5%; padding-top:5px;">
-                    ${com.consultor}<br><b>Consultor Responsável</b>
-                </div>
-                <div style="display:inline-block; width:40%; border-top:1px solid #000; padding-top:5px;">
-                    ${com.cliente}<br><b>De acordo (Cliente)</b>
-                </div>
-            </div>
-
-        </body></html>`;
-
-        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `Viabilidade_Financeira_${com.cliente}.doc`;
-        link.click();
-    }
-
-    // --- UTILITÁRIOS & EDIÇÃO (Mantidos da versão anterior) ---
     function editarItem(tipo, index) {
         if (tipo === 'com') {
             const item = dadosProjeto.comercial.itens[index];
@@ -707,6 +619,152 @@
         }
 
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
+    }
+
+    // --- MODAL DE PREVIEW E LÓGICA DE DOWNLOAD ---
+    
+    // Função auxiliar para gerar o HTML do contrato (Usada tanto no preview quanto no download)
+    function montarHTMLDocumento(completo) {
+        const com = dadosProjeto.comercial;
+        const tec = dadosProjeto.tecnico;
+        
+        // Se estiver no modo preview/download no comercial, atualiza dados antes
+        if(!completo) {
+            com.cliente = document.getElementById('projeto').value || "Cliente";
+            com.cnpj = document.getElementById('cnpj').value;
+            com.consultor = document.getElementById('consultor').value;
+        }
+
+        const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
+        const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
+        const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
+        const hoje = new Date().toLocaleDateString('pt-BR');
+
+        // Tabelas HTML
+        const linhasCom = com.itens.map(i => `
+            <tr>
+                <td style="border:1px solid #ccc; padding:8px;">${i.nome}</td>
+                <td style="border:1px solid #ccc; padding:8px; text-align:center;">${i.qtd}</td>
+                <td style="border:1px solid #ccc; padding:8px; text-align:right;">${formatarMoeda(i.valorUnit)}</td>
+                <td style="border:1px solid #ccc; padding:8px; text-align:right;">${formatarMoeda(i.total)}</td>
+            </tr>`).join('');
+
+        const linhasTec = tec.itens.map(i => `
+            <tr>
+                <td style="border:1px solid #ccc; padding:8px;">${i.nome} <br><span style="font-size:9pt; color:#666;">(Equipe: ${i.tipo})</span></td>
+                <td style="border:1px solid #ccc; padding:8px; text-align:center;">${i.qtd}</td>
+                <td style="border:1px solid #ccc; padding:8px; text-align:right;">${formatarMoeda(i.valorUnit)}</td>
+                <td style="border:1px solid #ccc; padding:8px; text-align:right;">${formatarMoeda(i.total)}</td>
+            </tr>`).join('');
+
+        const blocoTecnico = completo ? `
+            <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">3. ESCOPO TÉCNICO</h2>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                <thead>
+                    <tr style="background:#f2f2f2;">
+                        <th style="border:1px solid #ccc; padding:8px; text-align:left;">Item / Descrição</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:10%; text-align:center;">Qtd.</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Valor Unit.</th>
+                        <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${linhasTec.length ? linhasTec : '<tr><td colspan="4" style="text-align:center; border:1px solid #ccc; padding:8px;">Nenhum item técnico.</td></tr>'}
+                </tbody>
+            </table>
+        ` : '';
+
+        return `
+            <div style="font-family:Arial, sans-serif; font-size:11pt; line-height:1.5; color:#000;">
+                <h1 style="text-align:center; font-size:16pt; text-transform:uppercase; margin-bottom:20px; color:#333; border-bottom:2px solid #333; padding-bottom:10px;">VIABILIDADE FINANCEIRA</h1>
+                <p style="text-align:right; font-size:9pt; color:#666;">Data de Emissão: ${hoje}</p>
+
+                <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">1. IDENTIFICAÇÃO DO CLIENTE</h2>
+                <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                    <tr>
+                        <th style="border:1px solid #ccc; padding:8px; width:25%; background:#f2f2f2; text-align:left;">Cliente</th>
+                        <td style="border:1px solid #ccc; padding:8px;">${com.cliente}</td>
+                        <th style="border:1px solid #ccc; padding:8px; width:20%; background:#f2f2f2; text-align:left;">CNPJ</th>
+                        <td style="border:1px solid #ccc; padding:8px;">${com.cnpj}</td>
+                    </tr>
+                    <tr>
+                        <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Consultor</th>
+                        <td style="border:1px solid #ccc; padding:8px;">${com.consultor}</td>
+                        <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Previsão Entrega</th>
+                        <td style="border:1px solid #ccc; padding:8px;">${dataRef}</td>
+                    </tr>
+                    <tr>
+                        <th style="border:1px solid #ccc; padding:8px; background:#f2f2f2; text-align:left;">Tipo de Serviço</th>
+                        <td colspan="3" style="border:1px solid #ccc; padding:8px;">${servicoRef}</td>
+                    </tr>
+                </table>
+
+                <h2 style="font-size:12pt; background:#eee; padding:5px; border-left:5px solid #2c3e50; margin-top:20px;">2. PROPOSTA COMERCIAL</h2>
+                <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                    <thead>
+                        <tr style="background:#f2f2f2;">
+                            <th style="border:1px solid #ccc; padding:8px; text-align:left;">Item / Descrição</th>
+                            <th style="border:1px solid #ccc; padding:8px; width:10%; text-align:center;">Qtd.</th>
+                            <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Valor Unit.</th>
+                            <th style="border:1px solid #ccc; padding:8px; width:20%; text-align:right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${linhasCom}
+                    </tbody>
+                </table>
+
+                ${blocoTecnico}
+
+                <div style="margin-top:30px; border:2px solid #333; padding:15px; background:#f9f9f9; text-align:right;">
+                    <span style="font-size:12pt; font-weight:bold; margin-right:20px;">INVESTIMENTO TOTAL PREVISTO:</span>
+                    <span style="font-size:14pt; font-weight:bold; color:#000;">${formatarMoeda(totalGeral)}</span>
+                </div>
+
+                <div style="margin-top:80px; text-align:center; font-size:10pt;">
+                    <div style="display:inline-block; width:40%; border-top:1px solid #000; margin-right:5%; padding-top:5px;">
+                        ${com.consultor}<br><b>Consultor Responsável</b>
+                    </div>
+                    <div style="display:inline-block; width:40%; border-top:1px solid #000; padding-top:5px;">
+                        ${com.cliente}<br><b>De acordo (Cliente)</b>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function abrirPreview(completo) {
+        modoCompletoGlobal = completo; // Salva estado para o botão baixar dentro do modal
+        const html = montarHTMLDocumento(completo);
+        document.getElementById('papelSimulacao').innerHTML = html;
+        document.getElementById('modalPreview').style.display = 'flex';
+    }
+
+    function fecharPreview() {
+        document.getElementById('modalPreview').style.display = 'none';
+    }
+
+    function baixarDoModal() {
+        // Gera o HTML final para o arquivo
+        const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
+        <body>
+            ${montarHTMLDocumento(modoCompletoGlobal)}
+        </body></html>`;
+
+        const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        const sufixo = modoCompletoGlobal ? 'Completo' : 'Comercial';
+        link.download = `Viabilidade_${dadosProjeto.comercial.cliente}_${sufixo}.doc`;
+        link.click();
+        
+        fecharPreview(); // Fecha após baixar
+    }
+
+    // Mantido para compatibilidade, caso chame direto sem preview
+    function gerarDocumentoWord(completo) {
+        abrirPreview(completo);
     }
 
     function mascaraCNPJ(i) {
