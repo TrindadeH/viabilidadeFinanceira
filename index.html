@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v9)</title>
+    <title>Viabilidade Financeira - Integrado (Final v10)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -90,7 +90,10 @@
         .item-info span { color: #777; font-size: 11px; }
         .valor-total-container { margin-top: 20px; }
         .lbl-total { font-size: 11px; font-weight: bold; color: #777; text-transform: uppercase; display: block; }
-        .val-total { font-size: 28px; font-weight: bold; color: var(--success); }
+        /* Classes separadas para os totais */
+        .val-total-com { font-size: 22px; font-weight: bold; color: var(--success); }
+        .val-total-tec { font-size: 22px; font-weight: bold; color: var(--accent); }
+        
         .acoes-item { display: flex; gap: 5px; align-items: center; }
         .btn-icon { background: none; border: none; cursor: pointer; color: #999; font-size: 14px; padding: 5px; transition: 0.2s; }
         .btn-icon:hover { color: var(--primary); transform: scale(1.1); }
@@ -314,8 +317,15 @@
         </div>
         
         <div class="valor-total-container">
-            <span class="lbl-total">VALOR TOTAL ESTIMADO</span>
-            <div id="valorTotalFinal" class="val-total">R$ 0,00</div>
+            <div style="margin-bottom: 15px;">
+                <span class="lbl-total">TOTAL PLANOS (COMERCIAL)</span>
+                <div id="valTotalComercial" class="val-total-com">R$ 0,00</div>
+            </div>
+            
+            <div style="border-top: 1px dashed #ccc; padding-top: 10px;">
+                <span class="lbl-total">TOTAL EQUIPAMENTOS (TÉCNICO)</span>
+                <div id="valTotalTecnico" class="val-total-tec">R$ 0,00</div>
+            </div>
         </div>
     </div>
 </div>
@@ -613,12 +623,15 @@
     function renderizarResumo() {
         const listaCom = document.getElementById('lista-resumo-com');
         const listaTec = document.getElementById('lista-resumo-tec');
-        let totalGeral = 0;
+        
+        let totalComercial = 0;
+        let totalTecnico = 0;
 
+        // Comercial Loop
         listaCom.innerHTML = "";
         if (dadosProjeto.comercial.itens.length > 0) {
             dadosProjeto.comercial.itens.forEach((item, index) => {
-                totalGeral += item.total;
+                totalComercial += item.total;
                 listaCom.innerHTML += `
                     <li class="item-resumo">
                         <div class="item-info"><b>${item.nome}</b><span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
@@ -633,10 +646,11 @@
             listaCom.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum plano.</li>';
         }
 
+        // Técnico Loop
         listaTec.innerHTML = "";
         if (dadosProjeto.tecnico.itens.length > 0) {
             dadosProjeto.tecnico.itens.forEach((item, index) => {
-                totalGeral += item.total;
+                totalTecnico += item.total;
                 listaTec.innerHTML += `
                     <li class="item-resumo">
                         <div class="item-info"><b>${item.nome}</b><span>${item.tipo} | ${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
@@ -651,7 +665,9 @@
             listaTec.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>';
         }
 
-        document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
+        // ATUALIZA VALORES SEPARADOS
+        document.getElementById('valTotalComercial').innerText = formatarMoeda(totalComercial);
+        document.getElementById('valTotalTecnico').innerText = formatarMoeda(totalTecnico);
     }
 
     // --- MODAL COM RESUMO FINANCEIRO (AJUSTADO: Contingência apenas sobre o Técnico + Layout Final) ---
@@ -722,7 +738,7 @@
             </table>
         ` : '';
 
-        // BLOCO RESUMO FINAL (COM TRAÇO PRETO ACIMA, SEM TOTAL NO RODAPÉ)
+        // BLOCO RESUMO FINAL
         const blocoResumo = completo ? `
             
             <div style="border-top: 3px solid #000; margin-top: 40px; margin-bottom: 30px;"></div>
