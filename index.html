@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final)</title>
+    <title>Viabilidade Financeira - Integrado (Final v8)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -654,7 +654,7 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    // --- MODAL COM RESUMO FINANCEIRO (OPÇÃO A - CLEAN) ---
+    // --- MODAL COM RESUMO FINANCEIRO (AJUSTADO: Contingência apenas sobre o Técnico) ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -668,13 +668,15 @@
         const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
         const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
         
-        // CÁLCULOS DO RESUMO
+        // CÁLCULOS
         const totalComercial = com.itens.reduce((a,i)=>a+i.total,0);
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
         const totalGeral = totalComercial + totalTecnico;
-        const contingencia = totalGeral * 0.02; // 2%
-        const minProvavel = totalGeral - contingencia;
-        const maxProvavel = totalGeral + contingencia;
+        
+        // AJUSTE: CONTINGÊNCIA APENAS SOBRE O TÉCNICO (CUSTO)
+        const contingencia = totalTecnico * 0.02; // 2% do TÉCNICO
+        const minProvavel = totalTecnico - contingencia;
+        const maxProvavel = totalTecnico + contingencia;
 
         const hoje = new Date().toLocaleDateString('pt-BR');
 
@@ -723,25 +725,25 @@
 
         // BLOCO RESUMO FINANCEIRO
         const blocoResumo = completo ? `
-            <div style="${sectionTitleStyle}">4. Resumo Financeiro</div>
+            <div style="${sectionTitleStyle}">4. Resumo Financeiro e Contingência</div>
             <div style="background:#f1f3f5; border-radius:8px; padding:20px; border:1px solid #e9ecef;">
                 
                 <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #dee2e6; padding-bottom:15px;">
                     <div>
-                        <span style="font-weight:bold; color:${primaryColor}; display:block;">Valor Total (Arrecadação):</span>
+                        <span style="font-weight:bold; color:${primaryColor}; display:block;">Total Comercial (Arrecadação):</span>
                         <span style="font-size:12pt; color:#555;">${formatarMoeda(totalComercial)}</span>
                     </div>
                     <div style="text-align:right;">
-                        <span style="font-weight:bold; color:${primaryColor}; display:block;">Total Técnico - Equipamentos (Custo Estimado):</span>
+                        <span style="font-weight:bold; color:${primaryColor}; display:block;">Total Técnico (Custo Estimado):</span>
                         <span style="font-size:12pt; color:#555;">${formatarMoeda(totalTecnico)}</span>
                     </div>
                 </div>
 
                 <div>
-                    <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Variação de Contingência (2%):</span>
+                    <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Variação de Contingência (2% sobre Custo Técnico):</span>
                     <div style="font-size:10pt; color:#666;">
-                        Variação estimada de +/- ${formatarMoeda(contingencia)}. Faixa de valor final provável: 
-                        <b style="color:#333;">De ${formatarMoeda(minProvavel)} até ${formatarMoeda(maxProvavel)}.</b>
+                        Variação estimada de +/- ${formatarMoeda(contingencia)}. <br>
+                        Faixa provável do Custo Técnico: <b style="color:#333;">De ${formatarMoeda(minProvavel)} até ${formatarMoeda(maxProvavel)}.</b>
                     </div>
                 </div>
 
@@ -833,4 +835,3 @@
 </script>
 </body>
 </html>
-
