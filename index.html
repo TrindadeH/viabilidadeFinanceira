@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Versão C - Final)</title>
+    <title>Viabilidade Financeira - Integrado (Final A)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -67,6 +67,9 @@
         .btn-preview { background: #6f42c1; color: white; margin-top: 10px; padding: 15px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-preview:hover { background: #5a32a3; }
         
+        .btn-save-tec { background: var(--warning); color: #333; margin-top: 20px; padding: 15px; font-size: 14px; }
+        .btn-save-tec:hover { background: #ffca2c; }
+
         .btn-back { background: #6c757d; color: white; margin-top: 10px; }
         .btn-back:hover { background: #5a6268; }
 
@@ -403,7 +406,7 @@
 
     function validarTecnico() {
         const temItens = dadosProjeto.tecnico.itens.length > 0;
-        const btn = document.getElementById('btn-preview-tec'); // Botão roxo
+        const btn = document.getElementById('btn-preview-tec');
         if (temItens) {
             btn.disabled = false;
         } else {
@@ -652,7 +655,7 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    // --- MODAL DE PREVIEW E LÓGICA DE DOWNLOAD (OPÇÃO C) ---
+    // --- MODAL DE PREVIEW (OPÇÃO A - AJUSTADA) ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -668,34 +671,36 @@
         const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // --- Estilos Opção C (Clean com Destaque Financeiro) ---
-        const highlightColor = "#2c3e50"; 
-        const textColor = "#333";
-        const softBorder = "#f0f0f0";
+        // Estilos Opção A (Clean com Acentos Azuis Sutis)
+        const primaryColor = "#2c3e50"; 
+        const lightGray = "#f8f9fa";
+        const borderColor = "#e9ecef";
 
-        const sectionTitleStyle = `font-size:13pt; color:${textColor}; font-weight:700; margin-top:40px; margin-bottom:20px;`;
-        const tableStyle = `width:100%; border-collapse:collapse; margin-bottom:30px; font-size:10.5pt;`;
-        const thStyle = `color:#999; padding:15px 10px; text-align:left; font-weight:600; border-bottom:1px solid ${softBorder}; font-size:9.5pt; text-transform:uppercase;`;
-        const tdStyle = `padding:15px 10px; border-bottom:1px solid ${softBorder}; color:${textColor}; vertical-align:middle;`;
-        const moneyTdStyle = `${tdStyle} color:${highlightColor}; font-family:'Segoe UI', Roboto, monospace; font-weight:600;`;
+        const sectionTitleStyle = `font-size:14pt; color:${primaryColor}; font-weight:bold; margin-top:30px; margin-bottom:15px; padding-bottom:5px; border-bottom:2px solid ${borderColor}; text-transform:uppercase; letter-spacing:0.5px;`;
+        
+        const tableStyle = `width:100%; border-collapse:collapse; margin-bottom:20px; font-size:10.5pt;`;
+        const thStyle = `background:${lightGray}; color:${primaryColor}; padding:12px 8px; text-align:left; font-weight:bold; border-bottom:2px solid ${borderColor};`;
+        const tdStyle = `padding:10px 8px; border-bottom:1px solid ${borderColor}; color:#555; vertical-align:middle;`;
+        const boldTdStyle = `${tdStyle} font-weight:bold; color:${primaryColor};`;
+
+        // ESTILOS AJUSTADOS PARA O CABEÇALHO (Negrito no label, Cinza no valor)
+        const labelStyle = `color:${primaryColor}; font-weight:bold; font-size:10pt; text-transform:uppercase; margin-bottom:3px; display:block;`;
+        const valueStyle = `color:#666; font-size:11pt; font-weight:normal;`;
 
         const linhasCom = com.itens.map(i => `
             <tr>
-                <td style="${tdStyle}; font-weight:600;">${i.nome}</td>
-                <td style="${tdStyle} text-align:center; color:#777;">${i.qtd}</td>
-                <td style="${moneyTdStyle} text-align:right; opacity:0.8;">${formatarMoeda(i.valorUnit)}</td>
-                <td style="${moneyTdStyle} text-align:right; font-size:11pt;">${formatarMoeda(i.total)}</td>
+                <td style="${tdStyle}">${i.nome}</td>
+                <td style="${tdStyle} text-align:center;">${i.qtd}</td>
+                <td style="${tdStyle} text-align:right;">${formatarMoeda(i.valorUnit)}</td>
+                <td style="${boldTdStyle} text-align:right;">${formatarMoeda(i.total)}</td>
             </tr>`).join('');
 
         const linhasTec = tec.itens.map(i => `
             <tr>
-                <td style="${tdStyle}">
-                    <span style="font-weight:600;">${i.nome}</span>
-                    <span style="display:block; font-size:9pt; color:#999; margin-top:4px;">Equipe: ${i.tipo}</span>
-                </td>
-                <td style="${tdStyle} text-align:center; color:#777;">${i.qtd}</td>
-                <td style="${moneyTdStyle} text-align:right; opacity:0.8;">${formatarMoeda(i.valorUnit)}</td>
-                <td style="${moneyTdStyle} text-align:right; font-size:11pt;">${formatarMoeda(i.total)}</td>
+                <td style="${tdStyle}">${i.nome} <br><span style="font-size:9pt; color:#999;">(Tipo: ${i.tipo})</span></td>
+                <td style="${tdStyle} text-align:center;">${i.qtd}</td>
+                <td style="${tdStyle} text-align:right;">${formatarMoeda(i.valorUnit)}</td>
+                <td style="${boldTdStyle} text-align:right;">${formatarMoeda(i.total)}</td>
             </tr>`).join('');
 
         const blocoTecnico = completo ? `
@@ -703,33 +708,32 @@
             <table style="${tableStyle}">
                 <thead>
                     <tr>
-                        <th style="${thStyle}">Especificação</th>
-                        <th style="${thStyle} width:8%; text-align:center;">Qtd.</th>
-                        <th style="${thStyle} width:22%; text-align:right;">Unitário</th>
-                        <th style="${thStyle} width:22%; text-align:right;">Subtotal</th>
+                        <th style="${thStyle}">Item / Descrição</th>
+                        <th style="${thStyle} width:10%; text-align:center;">Qtd.</th>
+                        <th style="${thStyle} width:20%; text-align:right;">Unitário</th>
+                        <th style="${thStyle} width:20%; text-align:right;">Total</th>
                     </tr>
                 </thead>
-                <tbody>${linhasTec.length ? linhasTec : `<tr><td colspan="4" style="${tdStyle} text-align:center; color:#ccc;">Sem itens técnicos.</td></tr>`}</tbody>
+                <tbody>${linhasTec.length ? linhasTec : `<tr><td colspan="4" style="${tdStyle} text-align:center; color:#999;">Nenhum item técnico.</td></tr>`}</tbody>
             </table>
         ` : '';
 
         return `
-            <div style="font-family:'Segoe UI', Roboto, Arial, sans-serif; font-size:11pt; line-height:1.6; color:${textColor}; padding:40px; background:#fff;">
+            <div style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:11pt; line-height:1.6; color:#333; padding:30px; background:#fff;">
                 
-                <div style="display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid ${softBorder}; padding-bottom:20px; margin-bottom:40px;">
-                    <h1 style="margin:0; font-size:18pt; color:${textColor}; font-weight:700; letter-spacing:-0.5px;">Viabilidade Financeira</h1>
-                    <div style="font-size:10pt; color:#999;">Data: ${hoje}</div>
+                <div style="text-align:center; margin-bottom:40px;">
+                    <h1 style="margin:0; font-size:24pt; color:${primaryColor}; text-transform:uppercase; font-weight:300; letter-spacing:2px;">Viabilidade Financeira</h1>
+                    <p style="margin-top:10px; font-size:10pt; color:#777; border-top:1px solid ${borderColor}; display:inline-block; padding-top:10px;">Emitido em: ${hoje}</p>
                 </div>
 
-                <div style="${sectionTitleStyle}; margin-top:0;">1. Resumo do Projeto</div>
-                <div style="border:1px solid ${softBorder}; border-radius:6px; padding:25px; display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:25px; background:#fafafa;">
-                    <div><div style="font-size:9pt; color:#999; margin-bottom:5px;">CLIENTE</div><div style="font-size:12pt; font-weight:600;">${com.cliente}</div></div>
-                    <div><div style="font-size:9pt; color:#999; margin-bottom:5px;">CNPJ</div><div>${com.cnpj}</div></div>
-                    <div style="text-align:right;"><div style="font-size:9pt; color:#999; margin-bottom:5px;">CONSULTOR</div><div>${com.consultor}</div></div>
-                    
-                    <div style="grid-column:1/-1; border-top:1px solid ${softBorder}; padding-top:20px; display:flex; gap:40px;">
-                        <div><div style="font-size:9pt; color:#999; margin-bottom:5px;">SERVIÇO</div><div>${servicoRef}</div></div>
-                        <div><div style="font-size:9pt; color:#999; margin-bottom:5px;">PREVISÃO ENTREGA</div><div>${dataRef}</div></div>
+                <div style="${sectionTitleStyle}">1. Dados do Projeto</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:30px; background:${lightGray}; padding:20px; border-radius:8px;">
+                    <div><span style="${labelStyle}">Cliente:</span><span style="${valueStyle}">${com.cliente}</span></div>
+                    <div><span style="${labelStyle}">CNPJ:</span><span style="${valueStyle}">${com.cnpj}</span></div>
+                    <div><span style="${labelStyle}">Consultor:</span><span style="${valueStyle}">${com.consultor}</span></div>
+                    <div><span style="${labelStyle}">Previsão Entrega:</span><span style="${valueStyle}">${dataRef}</span></div>
+                    <div style="grid-column: 1 / -1; border-top:1px solid ${borderColor}; padding-top:15px;">
+                        <span style="${labelStyle}">Tipo de Serviço:</span><span style="${valueStyle}">${servicoRef}</span>
                     </div>
                 </div>
 
@@ -737,22 +741,20 @@
                 <table style="${tableStyle}">
                     <thead>
                         <tr>
-                            <th style="${thStyle}">Especificação</th>
-                            <th style="${thStyle} width:8%; text-align:center;">Qtd.</th>
-                            <th style="${thStyle} width:22%; text-align:right;">Unitário</th>
-                            <th style="${thStyle} width:22%; text-align:right;">Subtotal</th>
+                            <th style="${thStyle}">Item / Descrição</th>
+                            <th style="${thStyle} width:10%; text-align:center;">Qtd.</th>
+                            <th style="${thStyle} width:20%; text-align:right;">Unitário</th>
+                            <th style="${thStyle} width:20%; text-align:right;">Total</th>
                         </tr>
                     </thead>
-                    <tbody>${linhasCom.length ? linhasCom : `<tr><td colspan="4" style="${tdStyle} text-align:center; color:#ccc;">Sem itens comerciais.</td></tr>`}</tbody>
+                    <tbody>${linhasCom.length ? linhasCom : `<tr><td colspan="4" style="${tdStyle} text-align:center; color:#999;">Nenhum item comercial.</td></tr>`}</tbody>
                 </table>
 
                 ${blocoTecnico}
 
-                <div style="margin-top:60px; display:flex; justify-content:flex-end; align-items:center;">
-                    <div style="text-align:right;">
-                        <div style="font-size:11pt; color:#999; margin-bottom:8px; font-weight:600; text-transform:uppercase;">Investimento Total Previsto</div>
-                        <div style="font-size:32pt; font-weight:700; color:${highlightColor}; font-family:'Segoe UI', Roboto, monospace; line-height:1;">${formatarMoeda(totalGeral)}</div>
-                    </div>
+                <div style="margin-top:50px; text-align:right; border-top:2px solid ${primaryColor}; padding-top:20px;">
+                    <span style="font-size:13pt; color:#777; margin-right:15px; font-weight:300;">Investimento Total Previsto:</span>
+                    <span style="font-size:26pt; font-weight:bold; color:${primaryColor};">${formatarMoeda(totalGeral)}</span>
                 </div>
             </div>`;
     }
