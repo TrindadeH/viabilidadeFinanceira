@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v8)</title>
+    <title>Viabilidade Financeira - Integrado (Final v9)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -654,7 +654,7 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    // --- MODAL COM RESUMO FINANCEIRO (AJUSTADO: Contingência apenas sobre o Técnico) ---
+    // --- MODAL COM RESUMO FINANCEIRO (AJUSTADO: Contingência apenas sobre o Técnico + Layout Final) ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -671,9 +671,8 @@
         // CÁLCULOS
         const totalComercial = com.itens.reduce((a,i)=>a+i.total,0);
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
-        const totalGeral = totalComercial + totalTecnico;
         
-        // AJUSTE: CONTINGÊNCIA APENAS SOBRE O TÉCNICO (CUSTO)
+        // Contingência sobre o CUSTO TÉCNICO
         const contingencia = totalTecnico * 0.02; // 2% do TÉCNICO
         const minProvavel = totalTecnico - contingencia;
         const maxProvavel = totalTecnico + contingencia;
@@ -723,9 +722,12 @@
             </table>
         ` : '';
 
-        // BLOCO RESUMO FINANCEIRO
+        // BLOCO RESUMO FINAL (COM TRAÇO PRETO ACIMA, SEM TOTAL NO RODAPÉ)
         const blocoResumo = completo ? `
-            <div style="${sectionTitleStyle}">4. Resumo Financeiro e Contingência</div>
+            
+            <div style="border-top: 3px solid #000; margin-top: 40px; margin-bottom: 30px;"></div>
+
+            <div style="${sectionTitleStyle}; border-bottom: none; margin-top: 0;">4. Resumo Financeiro e Contingência</div>
             <div style="background:#f1f3f5; border-radius:8px; padding:20px; border:1px solid #e9ecef;">
                 
                 <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #dee2e6; padding-bottom:15px;">
@@ -784,11 +786,6 @@
 
                 ${blocoTecnico}
                 ${blocoResumo}
-
-                <div style="margin-top:50px; text-align:right; border-top:2px solid ${primaryColor}; padding-top:20px;">
-                    <span style="font-size:13pt; color:#777; margin-right:15px; font-weight:300;">Investimento Total Previsto:</span>
-                    <span style="font-size:26pt; font-weight:bold; color:${primaryColor};">${formatarMoeda(totalGeral)}</span>
-                </div>
             </div>`;
     }
 
