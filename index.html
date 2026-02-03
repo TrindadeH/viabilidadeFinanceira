@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final A)</title>
+    <title>Viabilidade Financeira - Integrado (Final)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- ESTILOS VISUAIS --- */
@@ -44,7 +44,6 @@
         /* BOTÕES */
         .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; font-size: 13px; text-transform: uppercase; }
         
-        /* ESTILO PARA BOTÃO DESABILITADO */
         button:disabled {
             background-color: #cccccc !important;
             color: #666 !important;
@@ -655,7 +654,7 @@
         document.getElementById('valorTotalFinal').innerText = formatarMoeda(totalGeral);
     }
 
-    // --- MODAL DE PREVIEW (OPÇÃO A - AJUSTADA) ---
+    // --- MODAL COM RESUMO FINANCEIRO (OPÇÃO A - CLEAN) ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -668,22 +667,26 @@
 
         const dataRef = com.itens.length > 0 ? formatarDataBR(com.itens[0].dataEntrega) : "---";
         const servicoRef = com.itens.length > 0 ? com.itens[0].servico : "---";
-        const totalGeral = com.itens.reduce((a,i)=>a+i.total,0) + tec.itens.reduce((a,i)=>a+i.total,0);
+        
+        // CÁLCULOS DO RESUMO
+        const totalComercial = com.itens.reduce((a,i)=>a+i.total,0);
+        const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
+        const totalGeral = totalComercial + totalTecnico;
+        const contingencia = totalGeral * 0.02; // 2%
+        const minProvavel = totalGeral - contingencia;
+        const maxProvavel = totalGeral + contingencia;
+
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // Estilos Opção A (Clean com Acentos Azuis Sutis)
+        // Estilos
         const primaryColor = "#2c3e50"; 
         const lightGray = "#f8f9fa";
         const borderColor = "#e9ecef";
-
         const sectionTitleStyle = `font-size:14pt; color:${primaryColor}; font-weight:bold; margin-top:30px; margin-bottom:15px; padding-bottom:5px; border-bottom:2px solid ${borderColor}; text-transform:uppercase; letter-spacing:0.5px;`;
-        
         const tableStyle = `width:100%; border-collapse:collapse; margin-bottom:20px; font-size:10.5pt;`;
         const thStyle = `background:${lightGray}; color:${primaryColor}; padding:12px 8px; text-align:left; font-weight:bold; border-bottom:2px solid ${borderColor};`;
         const tdStyle = `padding:10px 8px; border-bottom:1px solid ${borderColor}; color:#555; vertical-align:middle;`;
         const boldTdStyle = `${tdStyle} font-weight:bold; color:${primaryColor};`;
-
-        // ESTILOS AJUSTADOS PARA O CABEÇALHO (Negrito no label, Cinza no valor)
         const labelStyle = `color:${primaryColor}; font-weight:bold; font-size:10pt; text-transform:uppercase; margin-bottom:3px; display:block;`;
         const valueStyle = `color:#666; font-size:11pt; font-weight:normal;`;
 
@@ -718,6 +721,33 @@
             </table>
         ` : '';
 
+        // BLOCO RESUMO FINANCEIRO
+        const blocoResumo = completo ? `
+            <div style="${sectionTitleStyle}">4. Resumo Financeiro e Contingência</div>
+            <div style="background:#f1f3f5; border-radius:8px; padding:20px; border:1px solid #e9ecef;">
+                
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #dee2e6; padding-bottom:15px;">
+                    <div>
+                        <span style="font-weight:bold; color:${primaryColor}; display:block;">Total Comercial (Arrecadação):</span>
+                        <span style="font-size:12pt; color:#555;">${formatarMoeda(totalComercial)}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-weight:bold; color:${primaryColor}; display:block;">Total Técnico (Custo Estimado):</span>
+                        <span style="font-size:12pt; color:#555;">${formatarMoeda(totalTecnico)}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Variação de Contingência (2%):</span>
+                    <div style="font-size:10pt; color:#666;">
+                        Variação estimada de +/- ${formatarMoeda(contingencia)}. Faixa de valor final provável: 
+                        <b style="color:#333;">De ${formatarMoeda(minProvavel)} até ${formatarMoeda(maxProvavel)}.</b>
+                    </div>
+                </div>
+
+            </div>
+        ` : '';
+
         return `
             <div style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:11pt; line-height:1.6; color:#333; padding:30px; background:#fff;">
                 
@@ -728,12 +758,12 @@
 
                 <div style="${sectionTitleStyle}">1. Dados do Projeto</div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:30px; background:${lightGray}; padding:20px; border-radius:8px;">
-                    <div><span style="${labelStyle}">Cliente: </span><span style="${valueStyle}">${com.cliente}</span></div>
-                    <div><span style="${labelStyle}">CNPJ: </span><span style="${valueStyle}">${com.cnpj}</span></div>
-                    <div><span style="${labelStyle}">Consultor: </span><span style="${valueStyle}">${com.consultor}</span></div>
-                    <div><span style="${labelStyle}">Previsão Entrega: </span><span style="${valueStyle}">${dataRef}</span></div>
+                    <div><span style="${labelStyle}">Cliente:</span><span style="${valueStyle}">${com.cliente}</span></div>
+                    <div><span style="${labelStyle}">CNPJ:</span><span style="${valueStyle}">${com.cnpj}</span></div>
+                    <div><span style="${labelStyle}">Consultor:</span><span style="${valueStyle}">${com.consultor}</span></div>
+                    <div><span style="${labelStyle}">Previsão Entrega:</span><span style="${valueStyle}">${dataRef}</span></div>
                     <div style="grid-column: 1 / -1; border-top:1px solid ${borderColor}; padding-top:15px;">
-                        <span style="${labelStyle}">Tipo de Serviço: </span><span style="${valueStyle}">${servicoRef}</span>
+                        <span style="${labelStyle}">Tipo de Serviço:</span><span style="${valueStyle}">${servicoRef}</span>
                     </div>
                 </div>
 
@@ -751,6 +781,7 @@
                 </table>
 
                 ${blocoTecnico}
+                ${blocoResumo}
 
                 <div style="margin-top:50px; text-align:right; border-top:2px solid ${primaryColor}; padding-top:20px;">
                     <span style="font-size:13pt; color:#777; margin-right:15px; font-weight:300;">Investimento Total Previsto:</span>
@@ -802,4 +833,3 @@
 </script>
 </body>
 </html>
-
