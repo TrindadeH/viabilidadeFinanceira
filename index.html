@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (.DOCX)</title>
+    <title>Viabilidade Financeira - Integrado (Final v11)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -621,18 +621,29 @@
         
         let totalComercial = 0;
         let totalTecnico = 0;
+        
+        const isTecnicoActive = document.getElementById('tela-tecnica').classList.contains('active');
 
         listaCom.innerHTML = "";
         if (dadosProjeto.comercial.itens.length > 0) {
             dadosProjeto.comercial.itens.forEach((item, index) => {
                 totalComercial += item.total;
+                
+                // ESCONDE BOTÕES SE ESTIVER NA TELA TÉCNICA
+                let btnsComercial = '';
+                if (!isTecnicoActive) {
+                    btnsComercial = `
+                        <button class="btn-icon edit" onclick="editarItem('com', ${index})"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon del" onclick="removerItem('com', ${index})"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                }
+
                 listaCom.innerHTML += `
                     <li class="item-resumo">
                         <div class="item-info"><b>${item.nome}</b><span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
                         <div class="acoes-item">
                             <span style="font-weight:bold; margin-right:5px;">${formatarMoeda(item.total)}</span>
-                            <button class="btn-icon edit" onclick="editarItem('com', ${index})"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon del" onclick="removerItem('com', ${index})"><i class="fa-solid fa-trash"></i></button>
+                            ${btnsComercial}
                         </div>
                     </li>`;
             });
@@ -663,7 +674,7 @@
         document.getElementById('valTotalTecnico').innerText = formatarMoeda(totalTecnico);
     }
 
-    // --- DOC GENERATION (COM TABLE LAYOUT) ---
+    // --- DOC GENERATION ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
