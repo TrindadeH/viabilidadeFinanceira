@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v11)</title>
+    <title>Viabilidade Financeira - Integrado (Final v12)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -98,6 +98,7 @@
         #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
         .screen { display: none; }
         .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -674,7 +675,7 @@
         document.getElementById('valTotalTecnico').innerText = formatarMoeda(totalTecnico);
     }
 
-    // --- DOC GENERATION ---
+    // --- DOC GENERATION (COM TABLE LAYOUT) ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -690,6 +691,7 @@
         
         const totalComercial = com.itens.reduce((a,i)=>a+i.total,0);
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
+        const faturamento = totalComercial - totalTecnico; // Cálculo do faturamento
         
         const contingencia = totalTecnico * 0.02; 
         const minProvavel = totalTecnico - contingencia;
@@ -760,6 +762,12 @@
                         <span style="font-size:12pt; color:#555;">${formatarMoeda(totalTecnico)}</span>
                     </td>
                 </tr>
+                 <tr>
+                    <td colspan="2" style="padding:20px; text-align:right; border-bottom:1px solid #dee2e6;">
+                        <span style="font-weight:bold; font-size:11pt; color:#333; display:block;">Faturamento Previsto (Comercial - Técnico):</span>
+                        <span style="font-size:16pt; font-weight:bold; color:${faturamento >= 0 ? '#28a745' : '#dc3545'};">${formatarMoeda(faturamento)}</span>
+                    </td>
+                </tr>
                 <tr>
                     <td colspan="2" style="padding:20px;">
                         <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Variação de Contingência (2% sobre Custo Técnico):</span>
@@ -788,16 +796,16 @@
                 
                 <table style="width:100%; background:${lightGray}; border-radius:8px; padding:20px; border-spacing: 20px;">
                     <tr>
-                        <td width="50%" valign="top"><span style="${labelStyle}">Cliente: </span><span style="${valueStyle}">${com.cliente}</span></td>
-                        <td width="50%" valign="top"><span style="${labelStyle}">CNPJ: </span><span style="${valueStyle}">${com.cnpj}</span></td>
+                        <td width="50%" valign="top"><span style="${labelStyle}">Cliente:</span><span style="${valueStyle}">${com.cliente}</span></td>
+                        <td width="50%" valign="top"><span style="${labelStyle}">CNPJ:</span><span style="${valueStyle}">${com.cnpj}</span></td>
                     </tr>
                     <tr>
-                        <td valign="top"><span style="${labelStyle}">Consultor: </span><span style="${valueStyle}">${com.consultor}</span></td>
-                        <td valign="top"><span style="${labelStyle}">Previsão Entrega: </span><span style="${valueStyle}">${dataRef}</span></td>
+                        <td valign="top"><span style="${labelStyle}">Consultor:</span><span style="${valueStyle}">${com.consultor}</span></td>
+                        <td valign="top"><span style="${labelStyle}">Previsão Entrega:</span><span style="${valueStyle}">${dataRef}</span></td>
                     </tr>
                     <tr>
                         <td colspan="2" valign="top" style="border-top:1px solid ${borderColor}; padding-top:15px;">
-                            <span style="${labelStyle}">Tipo de Serviço: </span><span style="${valueStyle}">${servicoRef}</span>
+                            <span style="${labelStyle}">Tipo de Serviço:</span><span style="${valueStyle}">${servicoRef}</span>
                         </td>
                     </tr>
                 </table>
@@ -858,4 +866,3 @@
 </script>
 </body>
 </html>
-
