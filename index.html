@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v12)</title>
+    <title>Viabilidade Financeira - Integrado (Final v13)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -98,7 +98,6 @@
         #secao-parceira { background: #f9f9f9; border: 1px dashed #ccc; padding: 15px; border-radius: 5px; margin-top: 10px; display: none; }
         .screen { display: none; }
         .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -691,15 +690,15 @@
         
         const totalComercial = com.itens.reduce((a,i)=>a+i.total,0);
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
-        const faturamento = totalComercial - totalTecnico; // Cálculo do faturamento
+        const faturamento = totalComercial - totalTecnico; 
         
-        const contingencia = totalTecnico * 0.02; 
-        const minProvavel = totalTecnico - contingencia;
-        const maxProvavel = totalTecnico + contingencia;
+        // CONTINGENCIA 
+        const contingencia = totalTecnico * 0.02;
+        const totalComContingencia = totalTecnico + contingencia;
 
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // Styles for Word (Using Tables for layout)
+        // Config para o Word
         const primaryColor = "#2c3e50"; 
         const lightGray = "#f8f9fa";
         const borderColor = "#e9ecef";
@@ -710,7 +709,7 @@
         const tdStyle = `padding:10px 8px; border-bottom:1px solid ${borderColor}; color:#555; vertical-align:middle;`;
         const boldTdStyle = `${tdStyle} font-weight:bold; color:${primaryColor};`;
         
-        // Header & Data Styles
+        // Cabeçalhos
         const labelStyle = `color:${primaryColor}; font-weight:bold; font-size:10pt; text-transform:uppercase; display:block; margin-bottom:3px;`;
         const valueStyle = `color:#666; font-size:11pt;`;
 
@@ -749,7 +748,7 @@
             
             <div style="border-top: 3px solid #000; margin-top: 40px; margin-bottom: 30px;"></div>
 
-            <div style="${sectionTitleStyle}; border-bottom: none; margin-top: 0;">4. Resumo e Valores - Geral</div>
+            <div style="${sectionTitleStyle}; border-bottom: none; margin-top: 0;">4. Resumo Financeiro e Contingência</div>
             
             <table style="width:100%; background:#f1f3f5; border:1px solid #e9ecef; border-radius:8px;">
                 <tr>
@@ -770,10 +769,10 @@
                 </tr>
                 <tr>
                     <td colspan="2" style="padding:20px;">
-                        <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Variação de Contingência (2% sobre Custo Técnico):</span>
+                        <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Margem de Contingência (2% sobre Custo Técnico):</span>
                         <div style="font-size:10pt; color:#666;">
-                            Variação estimada de +/- ${formatarMoeda(contingencia)}. <br>
-                            Faixa provável do Custo Técnico: <b style="color:#333;">De ${formatarMoeda(minProvavel)} até ${formatarMoeda(maxProvavel)}.</b>
+                            Adicional estimado de <b>${formatarMoeda(contingencia)}</b> para imprevistos.<br>
+                            Custo Técnico Final (com margem): <b style="color:#333;">${formatarMoeda(totalComContingencia)}</b>.
                         </div>
                     </td>
                 </tr>
@@ -866,5 +865,3 @@
 </script>
 </body>
 </html>
-
-
