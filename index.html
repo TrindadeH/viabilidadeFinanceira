@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v16)</title>
+    <title>Viabilidade Financeira - Integrado (Final v17)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -86,6 +86,10 @@
         .item-resumo { padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .item-info b { color: #333; font-size: 14px; display: block; }
         .item-info span { color: #777; font-size: 11px; }
+        
+        /* Detalhe extra para parceira no resumo */
+        .info-parceira { display: block; font-size: 10px; color: #e67e22; font-weight: bold; margin-top: 2px; }
+
         .valor-total-container { margin-top: 20px; }
         .lbl-total { font-size: 11px; font-weight: bold; color: #777; text-transform: uppercase; display: block; }
         .val-total-com { font-size: 22px; font-weight: bold; color: var(--success); }
@@ -664,6 +668,7 @@
             dadosProjeto.comercial.itens.forEach((item, index) => {
                 totalComercial += item.total;
                 
+                // ESCONDE BOTÕES SE ESTIVER NA TELA TÉCNICA
                 let btnsComercial = '';
                 if (!isTecnicoActive) {
                     btnsComercial = `
@@ -672,9 +677,19 @@
                     `;
                 }
 
+                // DETALHE PARCEIRA
+                let detalheParceira = '';
+                if(item.temParceira) {
+                    detalheParceira = `<span class="info-parceira">Parceira: ${item.qtdParc}x ${formatarMoeda(item.valParc)}</span>`;
+                }
+
                 listaCom.innerHTML += `
                     <li class="item-resumo">
-                        <div class="item-info"><b>${item.nome}</b><span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span></div>
+                        <div class="item-info">
+                            <b>${item.nome}</b>
+                            <span>${item.qtd}x ${formatarMoeda(item.valorUnit)}</span>
+                            ${detalheParceira}
+                        </div>
                         <div class="acoes-item">
                             <span style="font-weight:bold; margin-right:5px;">${formatarMoeda(item.total)}</span>
                             ${btnsComercial}
@@ -703,11 +718,12 @@
             listaTec.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>';
         }
 
+        // ATUALIZA TOTAIS SEPARADOS
         document.getElementById('valTotalComercial').innerText = formatarMoeda(totalComercial);
         document.getElementById('valTotalTecnico').innerText = formatarMoeda(totalTecnico);
     }
 
-    // --- DOC GENERATION (COM TABLE LAYOUT) ---
+    // --- DOC GENERATION ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -725,12 +741,13 @@
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
         const faturamento = totalComercial - totalTecnico; 
         
+        // CONTINGENCIA APENAS PARA MAIS (ADD)
         const contingencia = totalTecnico * 0.02;
         const totalComContingencia = totalTecnico + contingencia;
 
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // CALCULO PARCEIRA NO RESUMO
+        // CALCULO PARCEIRA NO RESUMO (DOCX)
         let totalPontosParceira = 0;
         let valorTotalParceira = 0;
         let temParceira = false;
