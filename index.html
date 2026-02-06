@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v15)</title>
+    <title>Viabilidade Financeira - Integrado (Final v16)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -356,7 +356,6 @@
     let modoCompletoGlobal = false;
 
     function resetarSistema() {
-        // 1. Zera o objeto de dados
         dadosProjeto = {
             id: null,
             dataCriacao: null,
@@ -364,7 +363,6 @@
             tecnico: { itens: [] }
         };
 
-        // 2. Limpa Inputs do Comercial
         document.getElementById('projeto').value = '';
         document.getElementById('cnpj').value = '';
         document.getElementById('consultor').value = '';
@@ -379,7 +377,6 @@
         document.getElementById('valorParceira').value = '0';
         toggleParceira();
 
-        // 3. Limpa Inputs do Técnico
         document.getElementById('tec_equipamento').value = '';
         document.getElementById('tec_qtd').value = '1';
         document.getElementById('tec_valor').value = '0';
@@ -387,12 +384,10 @@
         document.getElementById('tec_tipo').selectedIndex = 0;
         document.getElementById('arquivoInput').value = '';
 
-        // 4. Reset das telas de info do técnico
         document.getElementById('area-upload').style.display = 'block';
         document.getElementById('info-projeto-carregado').style.display = 'none';
         document.getElementById('area-tecnica-form').style.display = 'none';
 
-        // 5. Atualiza o resumo visual para ficar zerado
         renderizarResumo();
         validarComercial();
         validarTecnico();
@@ -411,7 +406,7 @@
             resumo.style.display = 'none';
             container.style.maxWidth = '800px';
             boxTotalTec.style.display = 'none';
-            resetarSistema(); // Zera tudo ao voltar para o menu
+            resetarSistema(); 
         } else {
             resumo.style.display = 'block';
             container.style.maxWidth = '1200px';
@@ -421,12 +416,12 @@
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
             boxTotalTec.style.display = 'block';
-            resetarSistema(); // Zera ao entrar na técnica para forçar novo upload
+            resetarSistema(); 
         } 
         else if (telaId === 'tela-comercial') {
             blocoTec.style.display = 'none';
             boxTotalTec.style.display = 'none';
-            resetarSistema(); // Zera ao iniciar novo comercial
+            resetarSistema(); 
         }
         
         validarComercial();
@@ -535,7 +530,7 @@
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', `Viabilidade financeira_Projeto_${dadosProjeto.comercial.cliente}.json`);
+        linkElement.setAttribute('download', `Projeto_CRC_${dadosProjeto.comercial.cliente}.json`);
         linkElement.click();
     }
 
@@ -669,7 +664,6 @@
             dadosProjeto.comercial.itens.forEach((item, index) => {
                 totalComercial += item.total;
                 
-                // ESCONDE BOTÕES SE ESTIVER NA TELA TÉCNICA
                 let btnsComercial = '';
                 if (!isTecnicoActive) {
                     btnsComercial = `
@@ -709,12 +703,11 @@
             listaTec.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>';
         }
 
-        // ATUALIZA TOTAIS SEPARADOS
         document.getElementById('valTotalComercial').innerText = formatarMoeda(totalComercial);
         document.getElementById('valTotalTecnico').innerText = formatarMoeda(totalTecnico);
     }
 
-    // --- DOC GENERATION ---
+    // --- DOC GENERATION (COM TABLE LAYOUT) ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -737,12 +730,24 @@
 
         const hoje = new Date().toLocaleDateString('pt-BR');
 
+        // CALCULO PARCEIRA NO RESUMO
+        let totalPontosParceira = 0;
+        let valorTotalParceira = 0;
+        let temParceira = false;
+        
+        com.itens.forEach(i => {
+            if(i.temParceira) {
+                temParceira = true;
+                totalPontosParceira += i.qtdParc;
+                valorTotalParceira += (i.qtdParc * i.valParc);
+            }
+        });
+
         // Styles for Word
         const primaryColor = "#2c3e50"; 
         const lightGray = "#f8f9fa";
         const borderColor = "#e9ecef";
         const sectionTitleStyle = `font-size:14pt; color:${primaryColor}; font-weight:bold; margin-top:30px; margin-bottom:15px; padding-bottom:5px; border-bottom:2px solid ${borderColor}; text-transform:uppercase; letter-spacing:0.5px;`;
-        
         const tableStyle = `width:100%; border-collapse:collapse; margin-bottom:20px; font-size:10.5pt;`;
         const thStyle = `background:${lightGray}; color:${primaryColor}; padding:12px 8px; text-align:left; font-weight:bold; border-bottom:2px solid ${borderColor};`;
         const tdStyle = `padding:10px 8px; border-bottom:1px solid ${borderColor}; color:#555; vertical-align:middle;`;
@@ -781,6 +786,18 @@
             </table>
         ` : '';
 
+        // BLOCO PARCEIRA
+        let linhaParceira = '';
+        if (temParceira) {
+            linhaParceira = `
+            <tr>
+                <td colspan="2" style="padding:20px; border-bottom:1px solid #dee2e6;">
+                    <span style="font-weight:bold; color:#d9534f; display:block;">Custo Mão de Obra Parceira:</span>
+                    <span style="font-size:11pt; color:#555;">${totalPontosParceira} pontos (Total: ${formatarMoeda(valorTotalParceira)})</span>
+                </td>
+            </tr>`;
+        }
+
         const blocoResumo = completo ? `
             
             <div style="border-top: 3px solid #000; margin-top: 40px; margin-bottom: 30px;"></div>
@@ -804,6 +821,7 @@
                         <span style="font-size:16pt; font-weight:bold; color:${faturamento >= 0 ? '#28a745' : '#dc3545'};">${formatarMoeda(faturamento)}</span>
                     </td>
                 </tr>
+                ${linhaParceira}
                 <tr>
                     <td colspan="2" style="padding:20px;">
                         <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Margem de Contingência (2% sobre Custo Técnico):</span>
@@ -901,4 +919,3 @@
 </script>
 </body>
 </html>
-
