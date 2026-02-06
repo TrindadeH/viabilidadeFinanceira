@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v13)</title>
+    <title>Viabilidade Financeira - Integrado (Final v14)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -317,7 +317,7 @@
                 <div id="valTotalComercial" class="val-total-com">R$ 0,00</div>
             </div>
             
-            <div style="border-top: 1px dashed #ccc; padding-top: 10px;">
+            <div id="box-total-tecnico" style="border-top: 1px dashed #ccc; padding-top: 10px; display: none;">
                 <span class="lbl-total">TOTAL EQUIPAMENTOS (TÉCNICO)</span>
                 <div id="valTotalTecnico" class="val-total-tec">R$ 0,00</div>
             </div>
@@ -362,10 +362,14 @@
         const resumo = document.getElementById('resumo-container');
         const container = document.getElementById('main-container');
         const blocoTec = document.getElementById('bloco-resumo-tec');
+        
+        // Controle de visibilidade do Total Técnico na barra lateral
+        const boxTotalTec = document.getElementById('box-total-tecnico');
 
         if (telaId === 'tela-inicial') {
             resumo.style.display = 'none';
             container.style.maxWidth = '800px';
+            boxTotalTec.style.display = 'none';
         } else {
             resumo.style.display = 'block';
             container.style.maxWidth = '1200px';
@@ -374,6 +378,7 @@
 
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
+            boxTotalTec.style.display = 'block'; // Mostra na tela técnica
             dadosProjeto = {
                 id: null,
                 dataCriacao: null,
@@ -385,8 +390,9 @@
             document.getElementById('area-tecnica-form').style.display = 'none';
             document.getElementById('arquivoInput').value = '';
             renderizarResumo();
-        } else {
+        } else if (telaId === 'tela-comercial') {
             blocoTec.style.display = 'none';
+            boxTotalTec.style.display = 'none'; // Esconde na tela comercial
         }
         
         validarComercial();
@@ -692,13 +698,13 @@
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
         const faturamento = totalComercial - totalTecnico; 
         
-        // CONTINGENCIA 
+        // CONTINGENCIA APENAS PARA MAIS (ADD) - Ajuste solicitado
         const contingencia = totalTecnico * 0.02;
         const totalComContingencia = totalTecnico + contingencia;
 
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // Config para o Word
+        // Styles for Word (Using Tables for layout)
         const primaryColor = "#2c3e50"; 
         const lightGray = "#f8f9fa";
         const borderColor = "#e9ecef";
@@ -709,7 +715,7 @@
         const tdStyle = `padding:10px 8px; border-bottom:1px solid ${borderColor}; color:#555; vertical-align:middle;`;
         const boldTdStyle = `${tdStyle} font-weight:bold; color:${primaryColor};`;
         
-        // Cabeçalhos
+        // Header & Data Styles
         const labelStyle = `color:${primaryColor}; font-weight:bold; font-size:10pt; text-transform:uppercase; display:block; margin-bottom:3px;`;
         const valueStyle = `color:#666; font-size:11pt;`;
 
@@ -748,7 +754,7 @@
             
             <div style="border-top: 3px solid #000; margin-top: 40px; margin-bottom: 30px;"></div>
 
-            <div style="${sectionTitleStyle}; border-bottom: none; margin-top: 0;">4. Resumo Financeiro</div>
+            <div style="${sectionTitleStyle}; border-bottom: none; margin-top: 0;">4. Resumo Financeiro e Contingência</div>
             
             <table style="width:100%; background:#f1f3f5; border:1px solid #e9ecef; border-radius:8px;">
                 <tr>
@@ -772,7 +778,7 @@
                         <span style="font-weight:bold; color:${primaryColor}; display:block; margin-bottom:5px;">Margem de Contingência (2% sobre Custo Técnico):</span>
                         <div style="font-size:10pt; color:#666;">
                             Adicional estimado de <b>${formatarMoeda(contingencia)}</b> para imprevistos.<br>
-                            Custo Técnico Final (com margem): <b style="color:#333;">${formatarMoeda(totalComContingencia)}</b>.
+                            Custo Técnico Final (Teto com margem): <b style="color:#333;">${formatarMoeda(totalComContingencia)}</b>.
                         </div>
                     </td>
                 </tr>
@@ -795,16 +801,16 @@
                 
                 <table style="width:100%; background:${lightGray}; border-radius:8px; padding:20px; border-spacing: 20px;">
                     <tr>
-                        <td width="50%" valign="top"><span style="${labelStyle}">Cliente: </span><span style="${valueStyle}">${com.cliente}</span></td>
-                        <td width="50%" valign="top"><span style="${labelStyle}">CNPJ: </span><span style="${valueStyle}">${com.cnpj}</span></td>
+                        <td width="50%" valign="top"><span style="${labelStyle}">Cliente:</span><span style="${valueStyle}">${com.cliente}</span></td>
+                        <td width="50%" valign="top"><span style="${labelStyle}">CNPJ:</span><span style="${valueStyle}">${com.cnpj}</span></td>
                     </tr>
                     <tr>
-                        <td valign="top"><span style="${labelStyle}">Consultor: </span><span style="${valueStyle}">${com.consultor}</span></td>
-                        <td valign="top"><span style="${labelStyle}">Previsão Entrega: </span><span style="${valueStyle}">${dataRef}</span></td>
+                        <td valign="top"><span style="${labelStyle}">Consultor:</span><span style="${valueStyle}">${com.consultor}</span></td>
+                        <td valign="top"><span style="${labelStyle}">Previsão Entrega:</span><span style="${valueStyle}">${dataRef}</span></td>
                     </tr>
                     <tr>
                         <td colspan="2" valign="top" style="border-top:1px solid ${borderColor}; padding-top:15px;">
-                            <span style="${labelStyle}">Tipo de Serviço: </span><span style="${valueStyle}">${servicoRef}</span>
+                            <span style="${labelStyle}">Tipo de Serviço:</span><span style="${valueStyle}">${servicoRef}</span>
                         </td>
                     </tr>
                 </table>
@@ -865,5 +871,3 @@
 </script>
 </body>
 </html>
-
-
