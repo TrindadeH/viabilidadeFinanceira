@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v14)</title>
+    <title>Viabilidade Financeira - Integrado (Final v15)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -355,6 +355,49 @@
     let editIndexTec = null;
     let modoCompletoGlobal = false;
 
+    function resetarSistema() {
+        // 1. Zera o objeto de dados
+        dadosProjeto = {
+            id: null,
+            dataCriacao: null,
+            comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
+            tecnico: { itens: [] }
+        };
+
+        // 2. Limpa Inputs do Comercial
+        document.getElementById('projeto').value = '';
+        document.getElementById('cnpj').value = '';
+        document.getElementById('consultor').value = '';
+        document.getElementById('plano').value = '0';
+        document.getElementById('qtdPlano').value = '1';
+        document.getElementById('valorUnitPlano').value = '0,00';
+        document.getElementById('totalItemPlano').value = '0,00';
+        document.getElementById('servico').selectedIndex = 0;
+        document.getElementById('dataEntrega').value = '';
+        document.getElementById('parceiraCheck').value = 'nao';
+        document.getElementById('qtdParceira').value = '0';
+        document.getElementById('valorParceira').value = '0';
+        toggleParceira();
+
+        // 3. Limpa Inputs do Técnico
+        document.getElementById('tec_equipamento').value = '';
+        document.getElementById('tec_qtd').value = '1';
+        document.getElementById('tec_valor').value = '0';
+        document.getElementById('tec_total_preview').value = 'R$ 0,00';
+        document.getElementById('tec_tipo').selectedIndex = 0;
+        document.getElementById('arquivoInput').value = '';
+
+        // 4. Reset das telas de info do técnico
+        document.getElementById('area-upload').style.display = 'block';
+        document.getElementById('info-projeto-carregado').style.display = 'none';
+        document.getElementById('area-tecnica-form').style.display = 'none';
+
+        // 5. Atualiza o resumo visual para ficar zerado
+        renderizarResumo();
+        validarComercial();
+        validarTecnico();
+    }
+
     function irPara(telaId) {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(telaId).classList.add('active');
@@ -362,14 +405,13 @@
         const resumo = document.getElementById('resumo-container');
         const container = document.getElementById('main-container');
         const blocoTec = document.getElementById('bloco-resumo-tec');
-        
-        // Controle de visibilidade do Total Técnico na barra lateral
         const boxTotalTec = document.getElementById('box-total-tecnico');
 
         if (telaId === 'tela-inicial') {
             resumo.style.display = 'none';
             container.style.maxWidth = '800px';
             boxTotalTec.style.display = 'none';
+            resetarSistema(); // Zera tudo ao voltar para o menu
         } else {
             resumo.style.display = 'block';
             container.style.maxWidth = '1200px';
@@ -378,21 +420,13 @@
 
         if (telaId === 'tela-tecnica') {
             blocoTec.style.display = 'block';
-            boxTotalTec.style.display = 'block'; // Mostra na tela técnica
-            dadosProjeto = {
-                id: null,
-                dataCriacao: null,
-                comercial: { cliente: '', cnpj: '', consultor: '', itens: [] },
-                tecnico: { itens: [] }
-            };
-            document.getElementById('area-upload').style.display = 'block';
-            document.getElementById('info-projeto-carregado').style.display = 'none';
-            document.getElementById('area-tecnica-form').style.display = 'none';
-            document.getElementById('arquivoInput').value = '';
-            renderizarResumo();
-        } else if (telaId === 'tela-comercial') {
+            boxTotalTec.style.display = 'block';
+            resetarSistema(); // Zera ao entrar na técnica para forçar novo upload
+        } 
+        else if (telaId === 'tela-comercial') {
             blocoTec.style.display = 'none';
-            boxTotalTec.style.display = 'none'; // Esconde na tela comercial
+            boxTotalTec.style.display = 'none';
+            resetarSistema(); // Zera ao iniciar novo comercial
         }
         
         validarComercial();
@@ -680,7 +714,7 @@
         document.getElementById('valTotalTecnico').innerText = formatarMoeda(totalTecnico);
     }
 
-    // --- DOC GENERATION (COM TABLE LAYOUT) ---
+    // --- DOC GENERATION ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -698,13 +732,12 @@
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
         const faturamento = totalComercial - totalTecnico; 
         
-        // CONTINGENCIA APENAS PARA MAIS (ADD) - Ajuste solicitado
         const contingencia = totalTecnico * 0.02;
         const totalComContingencia = totalTecnico + contingencia;
 
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // Styles for Word (Using Tables for layout)
+        // Styles for Word
         const primaryColor = "#2c3e50"; 
         const lightGray = "#f8f9fa";
         const borderColor = "#e9ecef";
@@ -714,8 +747,6 @@
         const thStyle = `background:${lightGray}; color:${primaryColor}; padding:12px 8px; text-align:left; font-weight:bold; border-bottom:2px solid ${borderColor};`;
         const tdStyle = `padding:10px 8px; border-bottom:1px solid ${borderColor}; color:#555; vertical-align:middle;`;
         const boldTdStyle = `${tdStyle} font-weight:bold; color:${primaryColor};`;
-        
-        // Header & Data Styles
         const labelStyle = `color:${primaryColor}; font-weight:bold; font-size:10pt; text-transform:uppercase; display:block; margin-bottom:3px;`;
         const valueStyle = `color:#666; font-size:11pt;`;
 
@@ -848,7 +879,6 @@
         const html = montarHTMLDocumento(modoCompletoGlobal);
         const content = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
         
-        // CONVERTE PARA BLOB DOCX REAL USANDO A BIBLIOTECA
         const converted = htmlDocx.asBlob(content, { orientation: 'portrait', margins: { top: 720 } });
         
         const sufixo = modoCompletoGlobal ? 'Completo' : 'Comercial';
