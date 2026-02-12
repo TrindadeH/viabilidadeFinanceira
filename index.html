@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Final v17)</title>
+    <title>Viabilidade Financeira - Integrado (Seguro v18)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -87,7 +87,6 @@
         .item-info b { color: #333; font-size: 14px; display: block; }
         .item-info span { color: #777; font-size: 11px; }
         
-        /* Detalhe extra para parceira no resumo */
         .info-parceira { display: block; font-size: 10px; color: #e67e22; font-weight: bold; margin-top: 2px; }
 
         .valor-total-container { margin-top: 20px; }
@@ -359,6 +358,19 @@
     let editIndexTec = null;
     let modoCompletoGlobal = false;
 
+    // --- FUNÇÃO DE SEGURANÇA (SANITIZAÇÃO) ---
+    function sanitizar(texto) {
+        if (!texto) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(texto).replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
     function resetarSistema() {
         dadosProjeto = {
             id: null,
@@ -432,7 +444,6 @@
         validarTecnico();
     }
 
-    // --- VALIDAÇÃO ---
     function validarComercial() {
         const p = document.getElementById('projeto').value.trim();
         const c = document.getElementById('cnpj').value.trim();
@@ -457,7 +468,6 @@
         }
     }
 
-    // --- COMERCIAL: Atualização ---
     function atualizarValoresComercial() {
         const select = document.getElementById('plano');
         const valorUnit = parseFloat(select.value) || 0;
@@ -484,7 +494,9 @@
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
         const valParc = parseFloat(document.getElementById('valorParceira').value) || 0;
-        const nomeFinal = temParceira ? `${nomePlano} - Parceira` : nomePlano;
+        
+        // Sanitização dos dados de entrada
+        const nomeFinal = sanitizar(temParceira ? `${nomePlano} - Parceira` : nomePlano);
         const totalItem = (valorUnit * qtd) + (qtdParc * valParc);
 
         const itemObj = {
@@ -493,8 +505,8 @@
             nomeOriginal: nomePlano, 
             qtd: qtd,
             valorUnit: valorUnit,
-            servico: servico,
-            dataEntrega: dataE,
+            servico: sanitizar(servico),
+            dataEntrega: sanitizar(dataE),
             temParceira: temParceira,
             qtdParc: qtdParc,
             valParc: valParc,
@@ -524,9 +536,11 @@
 
     function exportarArquivoProjeto() {
         if(dadosProjeto.comercial.itens.length === 0) return alert("Adicione itens antes de salvar.");
-        dadosProjeto.comercial.cliente = document.getElementById('projeto').value || "Cliente";
-        dadosProjeto.comercial.cnpj = document.getElementById('cnpj').value;
-        dadosProjeto.comercial.consultor = document.getElementById('consultor').value;
+        
+        // Sanitiza antes de salvar
+        dadosProjeto.comercial.cliente = sanitizar(document.getElementById('projeto').value || "Cliente");
+        dadosProjeto.comercial.cnpj = sanitizar(document.getElementById('cnpj').value);
+        dadosProjeto.comercial.consultor = sanitizar(document.getElementById('consultor').value);
         dadosProjeto.id = Date.now();
         dadosProjeto.dataCriacao = new Date().toLocaleDateString('pt-BR'); 
 
@@ -538,14 +552,32 @@
         linkElement.click();
     }
 
-    // --- TÉCNICO ---
     function carregarArquivo(input) {
         const file = input.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                dadosProjeto = JSON.parse(e.target.result);
+                const dadosCarregados = JSON.parse(e.target.result);
+                
+                // Sanitização ao carregar
+                dadosProjeto.id = dadosCarregados.id;
+                dadosProjeto.dataCriacao = dadosCarregados.dataCriacao;
+                dadosProjeto.comercial.cliente = sanitizar(dadosCarregados.comercial.cliente);
+                dadosProjeto.comercial.cnpj = sanitizar(dadosCarregados.comercial.cnpj);
+                dadosProjeto.comercial.consultor = sanitizar(dadosCarregados.comercial.consultor);
+                
+                // Sanitiza os itens do comercial carregados
+                dadosProjeto.comercial.itens = dadosCarregados.comercial.itens.map(item => ({
+                    ...item,
+                    nome: sanitizar(item.nome),
+                    servico: sanitizar(item.servico),
+                    dataEntrega: sanitizar(item.dataEntrega)
+                }));
+                
+                // Mantém técnico zerado ou carrega se necessário (aqui reseta para garantir fluxo)
+                dadosProjeto.tecnico.itens = [];
+
                 document.getElementById('tec_display_cliente').innerText = dadosProjeto.comercial.cliente;
                 document.getElementById('tec_display_consultor').innerText = dadosProjeto.comercial.consultor || "---";
                 document.getElementById('tec_display_data').innerText = dadosProjeto.dataCriacao || "---";
@@ -569,7 +601,7 @@
     }
 
     function adicionarItemTecnico() {
-        const nome = document.getElementById('tec_equipamento').value;
+        const nome = sanitizar(document.getElementById('tec_equipamento').value); // Sanitiza
         if(!nome) return alert("Digite o nome do equipamento.");
         const qtd = parseInt(document.getElementById('tec_qtd').value) || 1;
         const valorUnit = parseFloat(document.getElementById('tec_valor').value) || 0;
@@ -668,7 +700,6 @@
             dadosProjeto.comercial.itens.forEach((item, index) => {
                 totalComercial += item.total;
                 
-                // ESCONDE BOTÕES SE ESTIVER NA TELA TÉCNICA
                 let btnsComercial = '';
                 if (!isTecnicoActive) {
                     btnsComercial = `
@@ -677,7 +708,6 @@
                     `;
                 }
 
-                // DETALHE PARCEIRA
                 let detalheParceira = '';
                 if(item.temParceira) {
                     detalheParceira = `<span class="info-parceira">Parceira: ${item.qtdParc}x ${formatarMoeda(item.valParc)}</span>`;
@@ -718,12 +748,10 @@
             listaTec.innerHTML = '<li style="color: #999; font-size: 12px; text-align: center;">Nenhum equipamento.</li>';
         }
 
-        // ATUALIZA TOTAIS SEPARADOS
         document.getElementById('valTotalComercial').innerText = formatarMoeda(totalComercial);
         document.getElementById('valTotalTecnico').innerText = formatarMoeda(totalTecnico);
     }
 
-    // --- DOC GENERATION ---
     function montarHTMLDocumento(completo) {
         const com = dadosProjeto.comercial;
         const tec = dadosProjeto.tecnico;
@@ -741,13 +769,11 @@
         const totalTecnico = tec.itens.reduce((a,i)=>a+i.total,0);
         const faturamento = totalComercial - totalTecnico; 
         
-        // CONTINGENCIA APENAS PARA MAIS (ADD)
         const contingencia = totalTecnico * 0.02;
         const totalComContingencia = totalTecnico + contingencia;
 
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        // CALCULO PARCEIRA NO RESUMO (DOCX)
         let totalPontosParceira = 0;
         let valorTotalParceira = 0;
         let temParceira = false;
@@ -760,15 +786,16 @@
             }
         });
 
-        // Styles for Word
         const primaryColor = "#2c3e50"; 
         const lightGray = "#f8f9fa";
         const borderColor = "#e9ecef";
         const sectionTitleStyle = `font-size:14pt; color:${primaryColor}; font-weight:bold; margin-top:30px; margin-bottom:15px; padding-bottom:5px; border-bottom:2px solid ${borderColor}; text-transform:uppercase; letter-spacing:0.5px;`;
+        
         const tableStyle = `width:100%; border-collapse:collapse; margin-bottom:20px; font-size:10.5pt;`;
         const thStyle = `background:${lightGray}; color:${primaryColor}; padding:12px 8px; text-align:left; font-weight:bold; border-bottom:2px solid ${borderColor};`;
         const tdStyle = `padding:10px 8px; border-bottom:1px solid ${borderColor}; color:#555; vertical-align:middle;`;
         const boldTdStyle = `${tdStyle} font-weight:bold; color:${primaryColor};`;
+        
         const labelStyle = `color:${primaryColor}; font-weight:bold; font-size:10pt; text-transform:uppercase; display:block; margin-bottom:3px;`;
         const valueStyle = `color:#666; font-size:11pt;`;
 
@@ -803,7 +830,6 @@
             </table>
         ` : '';
 
-        // BLOCO PARCEIRA
         let linhaParceira = '';
         if (temParceira) {
             linhaParceira = `
@@ -816,11 +842,8 @@
         }
 
         const blocoResumo = completo ? `
-            
             <div style="border-top: 3px solid #000; margin-top: 40px; margin-bottom: 30px;"></div>
-
             <div style="${sectionTitleStyle}; border-bottom: none; margin-top: 0;">4. Resumo Financeiro e Contingência</div>
-            
             <table style="width:100%; background:#f1f3f5; border:1px solid #e9ecef; border-radius:8px;">
                 <tr>
                     <td style="padding:20px; border-bottom:1px solid #dee2e6;">
@@ -853,7 +876,6 @@
 
         return `
             <div style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:11pt; line-height:1.6; color:#333; padding:30px; background:#fff;">
-                
                 <table style="width:100%; margin-bottom:40px;">
                     <tr>
                         <td style="text-align:center;">
@@ -864,7 +886,6 @@
                 </table>
 
                 <div style="${sectionTitleStyle}">1. Dados do Projeto</div>
-                
                 <table style="width:100%; background:${lightGray}; border-radius:8px; padding:20px; border-spacing: 20px;">
                     <tr>
                         <td width="50%" valign="top"><span style="${labelStyle}">Cliente:</span><span style="${valueStyle}">${com.cliente}</span></td>
@@ -893,7 +914,6 @@
                     </thead>
                     <tbody>${linhasCom.length ? linhasCom : `<tr><td colspan="4" style="${tdStyle} text-align:center; color:#999;">Nenhum item comercial.</td></tr>`}</tbody>
                 </table>
-
                 ${blocoTecnico}
                 ${blocoResumo}
             </div>`;
@@ -913,12 +933,9 @@
     function baixarDoModal() {
         const html = montarHTMLDocumento(modoCompletoGlobal);
         const content = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
-        
         const converted = htmlDocx.asBlob(content, { orientation: 'portrait', margins: { top: 720 } });
-        
         const sufixo = modoCompletoGlobal ? 'Completo' : 'Comercial';
         saveAs(converted, `Viabilidade_${dadosProjeto.comercial.cliente}_${sufixo}.docx`);
-        
         fecharPreview(); 
     }
 
