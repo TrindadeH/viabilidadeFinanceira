@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Viabilidade Financeira - Integrado (Seguro v18)</title>
+    <title>Viabilidade Financeira - Integrado (Livre v19)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -146,12 +146,7 @@
         
         <div class="form-group">
             <label>Plano</label>
-            <select id="plano" onchange="atualizarValoresComercial()">
-                <option value="0">Selecione...</option>
-                <option value="150">Plano Smart - R$ 150,00</option>
-                <option value="300">Plano Business - R$ 300,00</option>
-                <option value="500">Plano Enterprise - R$ 500,00</option>
-            </select>
+            <input type="text" id="plano" placeholder="Nome do Plano (Ex: Plano Smart, Plano Business...)" oninput="validarComercial()">
         </div>
         
         <div class="row-3">
@@ -161,7 +156,7 @@
             </div>
             <div class="form-group">
                 <label>Valor Unit. (R$)</label>
-                <input type="text" id="valorUnitPlano" value="0,00" readonly>
+                <input type="number" id="valorUnitPlano" value="0" step="0.01" oninput="atualizarValoresComercial()">
             </div>
             <div class="form-group">
                 <label>Total Item (R$)</label>
@@ -382,9 +377,9 @@
         document.getElementById('projeto').value = '';
         document.getElementById('cnpj').value = '';
         document.getElementById('consultor').value = '';
-        document.getElementById('plano').value = '0';
+        document.getElementById('plano').value = ''; // Resetado para texto vazio
         document.getElementById('qtdPlano').value = '1';
-        document.getElementById('valorUnitPlano').value = '0,00';
+        document.getElementById('valorUnitPlano').value = '0'; // Resetado
         document.getElementById('totalItemPlano').value = '0,00';
         document.getElementById('servico').selectedIndex = 0;
         document.getElementById('dataEntrega').value = '';
@@ -468,9 +463,10 @@
         }
     }
 
+    // --- COMERCIAL: Atualização com Campo Livre ---
     function atualizarValoresComercial() {
-        const select = document.getElementById('plano');
-        const valorUnit = parseFloat(select.value) || 0;
+        // Agora pega o valor digitado no input number
+        const valorUnit = parseFloat(document.getElementById('valorUnitPlano').value) || 0;
         const qtd = parseInt(document.getElementById('qtdPlano').value) || 0;
         const temParceira = document.getElementById('parceiraCheck').value === 'sim';
         const qtdParc = parseInt(document.getElementById('qtdParceira').value) || 0;
@@ -478,16 +474,17 @@
         const totalParceira = temParceira ? (qtdParc * valParc) : 0;
         const totalItem = (valorUnit * qtd) + totalParceira;
 
-        document.getElementById('valorUnitPlano').value = formatarMoeda(valorUnit);
         document.getElementById('totalItemPlano').value = formatarMoeda(totalItem);
     }
 
     function adicionarPlanoComercial() {
-        const select = document.getElementById('plano');
-        const valorUnit = parseFloat(select.value) || 0;
-        if (valorUnit === 0) return alert("Selecione um plano válido.");
+        const nomePlano = sanitizar(document.getElementById('plano').value);
+        if (!nomePlano) return alert("Digite o nome do plano.");
 
-        let nomePlano = select.options[select.selectedIndex].text.split(' - ')[0];
+        const valorUnit = parseFloat(document.getElementById('valorUnitPlano').value) || 0;
+        // Permite adicionar plano com valor 0, se for uma cortesia, mas alerta se for negativo
+        if (valorUnit < 0) return alert("O valor do plano não pode ser negativo.");
+
         const qtd = parseInt(document.getElementById('qtdPlano').value) || 1;
         const servico = document.getElementById('servico').value;
         const dataE = document.getElementById('dataEntrega').value;
@@ -523,8 +520,10 @@
             dadosProjeto.comercial.itens.push(itemObj);
         }
 
-        select.value = "0";
+        // Resetar Campos
+        document.getElementById('plano').value = "";
         document.getElementById('qtdPlano').value = "1";
+        document.getElementById('valorUnitPlano').value = "0"; // Reset
         document.getElementById('parceiraCheck').value = "nao";
         document.getElementById('qtdParceira').value = "0";
         document.getElementById('valorParceira').value = "0";
@@ -638,14 +637,12 @@
     function editarItem(tipo, index) {
         if (tipo === 'com') {
             const item = dadosProjeto.comercial.itens[index];
-            const select = document.getElementById('plano');
-            for (let i = 0; i < select.options.length; i++) {
-                if (select.options[i].text.includes(item.nomeOriginal)) {
-                    select.selectedIndex = i;
-                    break;
-                }
-            }
+            
+            // Preenche o input text em vez do select
+            document.getElementById('plano').value = item.nomeOriginal;
+            
             document.getElementById('qtdPlano').value = item.qtd;
+            document.getElementById('valorUnitPlano').value = item.valorUnit; // Preenche o valor unitário
             document.getElementById('servico').value = item.servico;
             document.getElementById('dataEntrega').value = item.dataEntrega;
             document.getElementById('parceiraCheck').value = item.temParceira ? "sim" : "nao";
@@ -700,6 +697,7 @@
             dadosProjeto.comercial.itens.forEach((item, index) => {
                 totalComercial += item.total;
                 
+                // ESCONDE BOTÕES SE ESTIVER NA TELA TÉCNICA
                 let btnsComercial = '';
                 if (!isTecnicoActive) {
                     btnsComercial = `
@@ -708,6 +706,7 @@
                     `;
                 }
 
+                // DETALHE PARCEIRA
                 let detalheParceira = '';
                 if(item.temParceira) {
                     detalheParceira = `<span class="info-parceira">Parceira: ${item.qtdParc}x ${formatarMoeda(item.valParc)}</span>`;
