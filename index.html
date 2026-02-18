@@ -547,7 +547,7 @@
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', `Projeto_CRC_${dadosProjeto.comercial.cliente}.json`);
+        linkElement.setAttribute('download', `Projeto_${dadosProjeto.comercial.cliente}.json`);
         linkElement.click();
     }
 
@@ -952,4 +952,5 @@
 </script>
 </body>
 </html>
+
 
